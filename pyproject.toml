@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "cryptoblotter"
+version = "0.1.0"
+description = "Pipeline for live tick data from cryptocurrency exchanges"
+authors = ["Alex <globophobe@gmail.com>"]
+readme = "README.md"
+license = "MIT"
+homepage = "https://github.com/globophobe/cryptoblotter"
+repository = "https://github.com/globophobe/cryptoblotter"
+keywords = ["cryptocurrency", "trading"]
+classifiers = [
+    "Operating System :: OS Independent",
+]
+packages = [{ include = "cryptoblotter" }]
+
+[tool.poetry.dependencies]
+python = ">=3.7.1,<4"
+google-cloud-pubsub = "^2.4.1"
+cryptofeed = {extras = ["gcp_pubsub"], version = "^1.8.2"}
+google-cloud-firestore = "^2.1.0"
+
+[tool.poetry.dev-dependencies]
+invoke = "^1.5.0"
+black = "^21.4b0"
+isort = "^5.8.0"
+flake8 = "^3.9.1"
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
