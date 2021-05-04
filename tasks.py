@@ -5,7 +5,7 @@ from google.cloud import pubsub_v1
 from google.protobuf.duration_pb2 import Duration
 from invoke import task
 
-from cryptoblotter.constants import CRYPTOBLOTTER, PROJECT_ID
+from cryptoblotter.constants import CRYPTOBLOTTER, PROJECT_ID, SERVICE_ACCOUNT
 from cryptoblotter.utils import get_container_name, get_deploy_env_vars, set_environment
 
 set_environment()
@@ -70,8 +70,8 @@ def build_container(c, hostname="asia.gcr.io", image=CRYPTOBLOTTER):
     cmd = f"""
         docker build \
             {build_args} \
-            --file=Dockerfile \
-            --tag={name} .
+            --file Dockerfile \
+            --tag {name} .
     """
     c.run(cmd)
 
@@ -85,16 +85,30 @@ def push_container(c, hostname="asia.gcr.io", image=CRYPTOBLOTTER):
 @task
 def deploy_container(
     c,
+    name=CRYPTOBLOTTER,
     container_name=None,
     machine_type="e2-micro",
     zone="asia-northeast1-a",
-    name=CRYPTOBLOTTER,
 ):
-    container_name = container_name or get_container_name()
+    container_name = container_name or get_container_name(tag="latest")
+    service_account = os.environ.get(SERVICE_ACCOUNT)
+    # A best practice is to set the full cloud-platform access scope on the instance,
+    # then securely limit the service account's API access with IAM roles.
+    # https://cloud.google.com/compute/docs/access/service-accounts#accesscopesiam
+    scopes = "cloud-platform"
     cmd = f"""
         gcloud compute instances create-with-container {name} \
-            --machine-type={machine_type} \
+            --machine-type {machine_type} \
             --zone {zone} \
-            --container-image={container_name}
+            --container-image {container_name} \
+            --service-account {service_account} \
+            --scopes {scopes}
     """
     c.run(cmd)
+
+
+@task
+def restart_container(c, hostname="asia.gcr.io", name=CRYPTOBLOTTER):
+    build_container(c, hostname=hostname, image=name)
+    push_container(c, hostname=hostname, image=name)
+    c.run(f"gcloud compute instances reset {name}")

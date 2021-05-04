@@ -20,5 +20,5 @@ def normalize_symbol(feed: str, symbol: str):
     for char in ("-", "/", "_"):
         symbol = symbol.replace(char, "")
     if feed == "upbit":
-        symbol = symbol[3:] + symbol[:3]  # Reverse
+        symbol = symbol[3:] + symbol[:3]  # Reversed
     return symbol

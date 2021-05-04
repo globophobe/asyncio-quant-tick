@@ -1,8 +1,10 @@
 FROM python:3.9-slim-buster
 
 ARG PROJECT_ID
+ARG SENTRY_DSN
 
 ENV PROJECT_ID $PROJECT_ID
+ENV SENTRY_DSN $SENTRY_DSN
 
 ADD requirements.txt /
 

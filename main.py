@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+import os
 
+import sentry_sdk
 from cryptofeed import FeedHandler
 from cryptofeed.defines import TRADES
 
+from cryptoblotter.constants import SENTRY_DSN
 from cryptoblotter.exchanges import (
     BinanceBlotter,
     BitfinexBlotter,
@@ -24,6 +27,7 @@ from cryptoblotter.trades import (
     TradeCallback,
 )
 from cryptoblotter.trades.constants import VOLUME
+from cryptoblotter.utils import is_local, set_environment
 
 sequential_integer_blotters = {
     BinanceBlotter: ["BTC-USDT", "ETH-USDT"],
@@ -44,7 +48,7 @@ blotters = {
 
 
 def get_callback(
-    blotter, thresh_attr=VOLUME, thresh_value=1000, window_seconds=60, top_n=10
+    blotter, thresh_attr=VOLUME, thresh_value=1000, window_seconds=60, top_n=25
 ):
     if blotter == BitflyerBlotter:
         thresh_value *= 100
@@ -63,6 +67,14 @@ def get_callback(
 
 
 if __name__ == "__main__":
+    if is_local():
+        set_environment()
+
+    sentry_sdk.init(
+        os.environ.get(SENTRY_DSN),
+        traces_sample_rate=1.0,
+    )
+
     fh = FeedHandler()
 
     for blotter, symbols in sequential_integer_blotters.items():

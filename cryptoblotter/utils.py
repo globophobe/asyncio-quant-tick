@@ -1,4 +1,3 @@
-import json
 import os
 from pathlib import Path
 
@@ -7,6 +6,7 @@ from google.cloud import pubsub_v1
 from .constants import (
     CRYPTOBLOTTER,
     GCP_APPLICATION_CREDENTIALS,
+    LOCAL_ENV_VARS,
     PRODUCTION_ENV_VARS,
     PROJECT_ID,
 )
@@ -17,14 +17,12 @@ def set_environment():
         with open("env.yaml", "r") as env:
             for line in env:
                 key, value = line.split(": ")
-                v = value.strip()
-                if key in GCP_APPLICATION_CREDENTIALS:
-                    path = Path.cwd().parents[0] / "keys" / v
-                    v = str(path.resolve())
-                    with open(v) as key_file:
-                        data = json.loads(key_file.read())
-                        os.environ[PROJECT_ID] = data["project_id"]
-                os.environ[key] = v
+                if key in LOCAL_ENV_VARS:
+                    v = value.strip()
+                    if key in GCP_APPLICATION_CREDENTIALS:
+                        path = Path.cwd().parents[0] / "keys" / v
+                        v = str(path.resolve())
+                    os.environ[key] = v
 
 
 def get_env_vars():
@@ -44,7 +42,7 @@ def get_deploy_env_vars(pre="", sep=",", keys=PRODUCTION_ENV_VARS):
 
 
 def is_local():
-    return all([os.environ.get(key, None) for key in GCP_APPLICATION_CREDENTIALS])
+    return all([os.environ.get(key) is None for key in LOCAL_ENV_VARS])
 
 
 def get_topic_path():
@@ -55,6 +53,9 @@ def get_subscription_path(topic):
     return pubsub_v1.SubscriberClient().subscription_path(os.getenv(PROJECT_ID), topic)
 
 
-def get_container_name(hostname="asia.gcr.io", image=CRYPTOBLOTTER):
+def get_container_name(hostname="asia.gcr.io", image=CRYPTOBLOTTER, tag=None):
     project_id = os.environ[PROJECT_ID]
-    return f"{hostname}/{project_id}/{image}"
+    container_name = f"{hostname}/{project_id}/{image}"
+    if tag:
+        container_name += f":{tag}"
+    return container_name
