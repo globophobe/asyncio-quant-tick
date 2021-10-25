@@ -2,10 +2,9 @@ from decimal import Decimal
 
 from cryptofeed.defines import TRADES
 from cryptofeed.exchanges import Bitmex
-from cryptofeed.standards import timestamp_normalize
 
 
-class BitmexBlotter(Bitmex):
+class BitmexExchange(Bitmex):
     async def _trade(self, msg: dict, timestamp: float):
         """
         trade msg example
@@ -23,7 +22,7 @@ class BitmexBlotter(Bitmex):
         }
         """
         for data in msg["data"]:
-            ts = timestamp_normalize(self.id, data["timestamp"])
+            ts = self.timestamp_normalize(data["timestamp"])
             price = Decimal(data["price"])
             volume = Decimal(data["foreignNotional"])
             notional = volume / price

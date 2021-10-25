@@ -2,10 +2,9 @@ from decimal import Decimal
 
 from cryptofeed.defines import TRADES
 from cryptofeed.exchanges import Bybit
-from cryptofeed.standards import timestamp_normalize
 
 
-class BybitBlotter(Bybit):
+class BybitExchange(Bybit):
     async def _trade(self, msg: dict, timestamp: float):
         """
         {"topic":"trade.BTCUSD",
@@ -34,7 +33,7 @@ class BybitBlotter(Bybit):
                 feed=self.id,
                 uid=trade["trade_id"],
                 symbol=trade["symbol"],  # Do not normalize
-                timestamp=timestamp_normalize(self.id, ts),
+                timestamp=self.timestamp_normalize(ts),
                 price=price,
                 volume=volume,
                 notional=notional,

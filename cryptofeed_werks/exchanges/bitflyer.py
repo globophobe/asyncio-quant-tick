@@ -1,9 +1,8 @@
 from cryptofeed.defines import TRADES
 from cryptofeed.exchanges import Bitflyer
-from cryptofeed.standards import timestamp_normalize
 
 
-class BitflyerBlotter(Bitflyer):
+class BitflyerExchange(Bitflyer):
     async def _trade(self, msg: dict, timestamp: float):
         """
         {
@@ -35,7 +34,7 @@ class BitflyerBlotter(Bitflyer):
                 feed=self.id,
                 uid=update["id"],
                 symbol=pair,  # Do not normalize
-                timestamp=timestamp_normalize(self.id, update["exec_date"]),
+                timestamp=self.timestamp_normalize(update["exec_date"]),
                 price=price,
                 volume=volume,
                 notional=notional,

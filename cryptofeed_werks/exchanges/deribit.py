@@ -2,10 +2,9 @@ from decimal import Decimal
 
 from cryptofeed.defines import BUY, LIQUIDATIONS, SELL, TRADES
 from cryptofeed.exchanges import Deribit
-from cryptofeed.standards import timestamp_normalize
 
 
-class DeribitBlotter(Deribit):
+class DeribitExchange(Deribit):
     async def _trade(self, msg: dict, timestamp: float):
         """
         {
@@ -40,7 +39,7 @@ class DeribitBlotter(Deribit):
                 feed=self.id,
                 uid=trade["trade_id"],
                 symbol=trade["instrument_name"],  # Do not normalize
-                timestamp=timestamp_normalize(self.id, trade["timestamp"]),
+                timestamp=self.timestamp_normalize(trade["timestamp"]),
                 price=price,
                 volume=volume,
                 notional=notional,
@@ -55,6 +54,6 @@ class DeribitBlotter(Deribit):
                     leaves_qty=Decimal(trade["amount"]),
                     price=Decimal(trade["price"]),
                     order_id=trade["trade_id"],
-                    timestamp=timestamp_normalize(self.id, trade["timestamp"]),
+                    timestamp=self.timestamp_normalize(self.id, trade["timestamp"]),
                     receipt_timestamp=timestamp,
                 )

@@ -1,14 +1,21 @@
 import os
+import re
 
 from google.api_core.exceptions import AlreadyExists
 from google.cloud import pubsub_v1
 from google.protobuf.duration_pb2 import Duration
 from invoke import task
 
-from cryptoblotter.constants import CRYPTOBLOTTER, PROJECT_ID, SERVICE_ACCOUNT
-from cryptoblotter.utils import get_container_name, get_deploy_env_vars, set_environment
+from cryptofeed_werks.constants import CRYPTOFEED_WERKS, PROJECT_ID, SERVICE_ACCOUNT
+from cryptofeed_werks.utils import (
+    get_container_name,
+    get_deploy_env_vars,
+    set_environment,
+)
 
 set_environment()
+
+NAME_REGEX = re.compile(r"^(\w+)_gcp$")
 
 
 @task
@@ -62,7 +69,7 @@ def export_requirements(c):
 
 
 @task
-def build_container(c, hostname="asia.gcr.io", image=CRYPTOBLOTTER):
+def build_container(c, hostname="asia.gcr.io", image=CRYPTOFEED_WERKS):
     # Ensure requirements
     export_requirements(c)
     build_args = get_deploy_env_vars(pre="--build-arg ", sep=" ")
@@ -77,7 +84,7 @@ def build_container(c, hostname="asia.gcr.io", image=CRYPTOBLOTTER):
 
 
 @task
-def push_container(c, hostname="asia.gcr.io", image=CRYPTOBLOTTER):
+def push_container(c, hostname="asia.gcr.io", image=CRYPTOFEED_WERKS):
     name = get_container_name(hostname, image)
     c.run(f"docker push {name}")
 
@@ -85,7 +92,7 @@ def push_container(c, hostname="asia.gcr.io", image=CRYPTOBLOTTER):
 @task
 def deploy_container(
     c,
-    name=CRYPTOBLOTTER,
+    name=CRYPTOFEED_WERKS,
     container_name=None,
     machine_type="e2-micro",
     zone="asia-northeast1-a",
@@ -108,7 +115,7 @@ def deploy_container(
 
 
 @task
-def restart_container(c, hostname="asia.gcr.io", name=CRYPTOBLOTTER):
+def update_container(c, hostname="asia.gcr.io", name=CRYPTOFEED_WERKS):
     build_container(c, hostname=hostname, image=name)
     push_container(c, hostname=hostname, image=name)
     c.run(f"gcloud compute instances reset {name}")

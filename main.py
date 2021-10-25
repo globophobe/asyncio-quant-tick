@@ -5,54 +5,52 @@ import sentry_sdk
 from cryptofeed import FeedHandler
 from cryptofeed.defines import TRADES
 
-from cryptoblotter.constants import SENTRY_DSN
-from cryptoblotter.exchanges import (
-    BinanceBlotter,
-    BitfinexBlotter,
-    BitflyerBlotter,
-    BitmexBlotter,
-    BybitBlotter,
-    CoinbaseBlotter,
-    DeribitBlotter,
-    FTXBlotter,
-    UpbitBlotter,
+from cryptofeed_werks.constants import SENTRY_DSN
+from cryptofeed_werks.exchanges import (
+    BinanceExchange,
+    BitfinexExchange,
+    BitflyerExchange,
+    BitmexExchange,
+    BybitExchange,
+    CoinbaseExchange,
+    FTXExchange,
+    UpbitExchange,
 )
-from cryptoblotter.trades import (
+from cryptofeed_werks.trades import (
     CandleCallback,
     FirestoreTradeCallback,
-    GCPPubSubTradeCallback,
     NonSequentialIntegerTradeCallback,
     SequentialIntegerTradeCallback,
     ThreshCallback,
     TradeCallback,
 )
-from cryptoblotter.trades.constants import VOLUME
-from cryptoblotter.utils import is_local, set_environment
+from cryptofeed_werks.trades.constants import VOLUME
+from cryptofeed_werks.utils import is_local, set_environment
 
-sequential_integer_blotters = {
-    BinanceBlotter: ["BTC-USDT", "ETH-USDT"],
-    CoinbaseBlotter: ["BTC-USD", "ETH-USD"],
+sequential_integer_exchanges = {
+    BinanceExchange: ["BTC-USDT", "ETH-USDT"],
+    CoinbaseExchange: ["BTC-USD", "ETH-USD"],
 }
 
-non_sequential_integer_blotters = {
-    FTXBlotter: ["BTC-PERP", "ETH-PERP"],
-    BitfinexBlotter: ["BTC-USDT", "ETH-USDT"],
+non_sequential_integer_exchanges = {
+    FTXExchange: ["BTC-PERP", "ETH-PERP"],
+    BitfinexExchange: ["BTC-USDT", "ETH-USDT"],
 }
 
-blotters = {
-    BitmexBlotter: ["BTC-USD", "ETH-USD"],
-    BybitBlotter: ["BTC-USD", "ETH-USD"],
-    # DeribitBlotter: ["BTC-PERPETUAL", "ETH-PERPETUAL"],
-    UpbitBlotter: ["BTC-KRW", "ETH-KRW"],
+other_exchanges = {
+    BitmexExchange: ["BTC-USD", "ETH-USD"],
+    BybitExchange: ["BTC-USD", "ETH-USD"],
+    # DeribitExchange: ["BTC-PERPETUAL", "ETH-PERPETUAL"],
+    UpbitExchange: ["BTC-KRW", "ETH-KRW"],
 }
 
 
 def get_callback(
-    blotter, thresh_attr=VOLUME, thresh_value=1000, window_seconds=60, top_n=25
+    exchange, thresh_attr=VOLUME, thresh_value=1000, window_seconds=60, top_n=25
 ):
-    if blotter == BitflyerBlotter:
+    if exchange == BitflyerExchange:
         thresh_value *= 100
-    elif blotter == UpbitBlotter:
+    elif exchange == UpbitExchange:
         thresh_value *= 1000
     firestore_callback = FirestoreTradeCallback(None, key="candles")  # TODO: Fix this
     candle_callback = CandleCallback(
@@ -77,28 +75,28 @@ if __name__ == "__main__":
 
     fh = FeedHandler()
 
-    for blotter, symbols in sequential_integer_blotters.items():
-        callback = SequentialIntegerTradeCallback(get_callback(blotter))
+    for exchange, symbols in sequential_integer_exchanges.items():
+        callback = SequentialIntegerTradeCallback(get_callback(exchange))
         fh.add_feed(
-            blotter(
+            exchange(
                 symbols=symbols,
                 channels=[TRADES],
                 callbacks={TRADES: callback},
             )
         )
-    for blotter, symbols in non_sequential_integer_blotters.items():
-        callback = NonSequentialIntegerTradeCallback(get_callback(blotter))
+    for exchange, symbols in non_sequential_integer_exchanges.items():
+        callback = NonSequentialIntegerTradeCallback(get_callback(exchange))
         fh.add_feed(
-            blotter(
+            exchange(
                 symbols=symbols,
                 channels=[TRADES],
                 callbacks={TRADES: callback},
             )
         )
-    for blotter, symbols in blotters.items():
-        callback = TradeCallback(get_callback(blotter))
+    for exchange, symbols in other_exchanges.items():
+        callback = TradeCallback(get_callback(exchange))
         fh.add_feed(
-            blotter(
+            exchange(
                 symbols=symbols,
                 channels=[TRADES],
                 callbacks={TRADES: callback},

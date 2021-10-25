@@ -2,10 +2,9 @@ from decimal import Decimal
 
 from cryptofeed.defines import TRADES
 from cryptofeed.exchanges import Bitfinex
-from cryptofeed.standards import timestamp_normalize
 
 
-class BitfinexBlotter(Bitfinex):
+class BitfinexExchange(Bitfinex):
     async def _trades(self, pair: str, msg: dict, timestamp: float):
         async def _trade_update(trade: list, timestamp: float):
             uid, ts, notional, price = trade
@@ -17,7 +16,7 @@ class BitfinexBlotter(Bitfinex):
                 feed=self.id,
                 uid=uid,
                 symbol=pair,  # Do not normalize
-                timestamp=timestamp_normalize(self.id, ts),
+                timestamp=self.timestamp_normalize(ts),
                 price=price,
                 volume=volume,
                 notional=notional,

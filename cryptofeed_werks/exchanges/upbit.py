@@ -2,10 +2,9 @@ from decimal import Decimal
 
 from cryptofeed.defines import TRADES
 from cryptofeed.exchanges import Upbit
-from cryptofeed.standards import timestamp_normalize
 
 
-class UpbitBlotter(Upbit):
+class UpbitExchange(Upbit):
     async def _trade(self, msg: dict, timestamp: float):
         """
         Doc : https://docs.upbit.com/v1.0.7/reference#시세-체결-조회
@@ -35,7 +34,7 @@ class UpbitBlotter(Upbit):
             feed=self.id,
             uid=msg["sid"],
             symbol=msg["cd"],  # Do not normalize
-            timestamp=timestamp_normalize(self.id, msg["ttms"]),
+            timestamp=self.timestamp_normalize(msg["ttms"]),
             price=price,
             volume=volume,
             notional=notional,

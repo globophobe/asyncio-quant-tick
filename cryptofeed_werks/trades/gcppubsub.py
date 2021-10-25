@@ -5,8 +5,8 @@ from cryptofeed.backends.gcppubsub import GCPPubSubCallback
 from gcloud.aio.pubsub import PublisherClient, PubsubMessage
 from yapic import json
 
+from ...utils import is_local, set_environment
 from ..constants import PROJECT_ID
-from ..utils import is_local, set_environment
 from .utils import normalize_symbol
 
 

@@ -2,10 +2,9 @@ from decimal import Decimal
 
 from cryptofeed.defines import BUY, LIQUIDATIONS, SELL, TRADES
 from cryptofeed.exchanges import FTX
-from cryptofeed.standards import timestamp_normalize
 
 
-class FTXBlotter(FTX):
+class FTXExchange(FTX):
     async def _trade(self, msg: dict, timestamp: float):
         """
         {
@@ -31,7 +30,7 @@ class FTXBlotter(FTX):
                 feed=self.id,
                 uid=trade["id"],
                 symbol=msg["market"],  # Do not normalize
-                timestamp=float(timestamp_normalize(self.id, trade["time"])),
+                timestamp=float(self.timestamp_normalize(trade["time"])),
                 price=price,
                 volume=volume,
                 notional=notional,
@@ -46,6 +45,6 @@ class FTXBlotter(FTX):
                     leaves_qty=Decimal(trade["size"]),
                     price=Decimal(trade["price"]),
                     order_id=trade["id"],
-                    timestamp=float(timestamp_normalize(self.id, trade["time"])),
+                    timestamp=float(self.timestamp_normalize(self.id, trade["time"])),
                     receipt_timestamp=timestamp,
                 )

@@ -1,5 +1,6 @@
 __pycache__/
-.pytest_cache/
 dist/
+requirements.txt
+requirements-dev.txt
 feedhandler.log
 env.yaml

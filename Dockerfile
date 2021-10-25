@@ -8,7 +8,7 @@ ENV SENTRY_DSN $SENTRY_DSN
 
 ADD requirements.txt /
 
-ADD cryptoblotter /cryptoblotter/
+ADD cryptofeed_werks /cryptofeed_werks/
 ADD main.py /
 
 RUN apt-get update \

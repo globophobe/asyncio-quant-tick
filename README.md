@@ -2,10 +2,6 @@
 
 This is the basis of a pipeline for live data from cryptocurrency exchanges. It normalizes [cryptofeed](https://github.com/bmoscon/cryptofeed) WebSocket messages, aggregates, and optionally publishes them to GCP Pub/Sub and/or Firestore.
 
-blotter.fi has both live data and historical data.
-
-This is only for live data.
-
 # How?
 
 Sequences of trades that have equal symbol, timestamp, nanoseconds, and tick rule are aggregated. Aggregating trades in this way can increase information, as they are either orders of size or stop loss cascades.
@@ -68,7 +64,7 @@ Information related to the first trade is aggregated with the second.
 
 For 1m, 5m, 15m candles, there is an optional parameter `window_seconds`.  
 
-For settings, see [demo.py](https://github.com/globophobe/cryptoblotter/blob/main/demo.py)
+For settings, see [demo.py](https://github.com/globophobe/cryptofeed-werks/blob/main/demo.py)
 
 Supported exchanges
 -------------------

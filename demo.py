@@ -3,9 +3,9 @@
 from cryptofeed import FeedHandler
 from cryptofeed.defines import TRADES
 
-from cryptoblotter.exchanges import CoinbaseBlotter
-from cryptoblotter.trades import SequentialIntegerTradeCallback, ThreshCallback
-from cryptoblotter.trades.constants import VOLUME
+from cryptofeed_werks.exchanges import CoinbaseExchange
+from cryptofeed_werks.trades import SequentialIntegerTradeCallback, ThreshCallback
+from cryptofeed_werks.trades.constants import VOLUME
 
 
 async def trades(trade):
@@ -15,7 +15,7 @@ async def trades(trade):
 if __name__ == "__main__":
     fh = FeedHandler()
     fh.add_feed(
-        CoinbaseBlotter(
+        CoinbaseExchange(
             symbols=["BTC-USD"],
             channels=[TRADES],
             callbacks={

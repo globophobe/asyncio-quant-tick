@@ -2,15 +2,13 @@ from decimal import Decimal
 
 from cryptofeed.defines import TRADES
 from cryptofeed.exchanges import Binance
-from cryptofeed.standards import timestamp_normalize
 
 
-class BinanceBlotter(Binance):
+class BinanceExchange(Binance):
     def __init__(self, *args, **kwargs):
         """
-        Cryptofeed uses aggregate trade streams. Raw trades are preferable,
-        to calculate VWAP. Unfortunately, the raw trade stream is
-        absolute trash and is frequently missing trades.
+        Cryptofeed uses aggregate trade streams.
+        The raw trade stream is absolute trash and is frequently missing trades.
         """
         super().__init__(*args, **kwargs)
         self.last_id = None
@@ -47,7 +45,7 @@ class BinanceBlotter(Binance):
             feed=self.id,
             uid=int(msg["l"]),  # Last trade ID
             symbol=msg["s"],  # Do not normalize
-            timestamp=timestamp_normalize(self.id, msg["E"]),
+            timestamp=self.timestamp_normalize(msg["E"]),
             price=price,
             volume=volume,
             notional=notional,

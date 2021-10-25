@@ -2,10 +2,9 @@ from decimal import Decimal
 
 from cryptofeed.defines import ASK, BID, L3_BOOK, TRADES
 from cryptofeed.exchanges import Coinbase
-from cryptofeed.standards import timestamp_normalize
 
 
-class CoinbaseBlotter(Coinbase):
+class CoinbaseExchange(Coinbase):
     async def _book_update(self, msg: dict, timestamp: float):
         """
         {
@@ -22,7 +21,7 @@ class CoinbaseBlotter(Coinbase):
         }
         """
         pair = msg["product_id"]
-        ts = timestamp_normalize(self.id, msg["time"])
+        ts = self.timestamp_normalize(msg["time"])
 
         if self.keep_l3_book and (
             "full" in self.channels
