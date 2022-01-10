@@ -4,7 +4,7 @@ This is the basis of a pipeline for live data from cryptocurrency exchanges. It 
 
 # How?
 
-Sequences of trades that have equal symbol, timestamp, nanoseconds, and tick rule are aggregated. Aggregating trades in this way can increase information, as they are either orders of size or stop loss cascades.
+Sequences of trades that have equal symbol, timestamp, nanoseconds, and tick rule are aggregated. As described in the accompanying project [django-cryptofeed-werks](https://github.com/globophobe/django-cryptofeed-werks), aggregating trades in this way can increase information, as they are either orders of size or stop loss cascades.
 
 As well, the number of messages can be reduced by 30-50%
 
@@ -70,13 +70,21 @@ Supported exchanges
 -------------------
 
 :white_check_mark: Binance
+
 :white_check_mark: Bitfinex
+
 :white_check_mark: Bitflyer
+
 :white_check_mark: BitMEX
+
 :white_check_mark: Bybit
+
 :white_check_mark: Coinbase Pro
+
 :white_check_mark: Deribit
+
 :white_check_mark: FTX
+
 :white_check_mark: Upbit
 
 Contributing
