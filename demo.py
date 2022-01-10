@@ -4,8 +4,7 @@ from cryptofeed import FeedHandler
 from cryptofeed.defines import TRADES
 
 from cryptofeed_werks.exchanges import CoinbaseExchange
-from cryptofeed_werks.trades import SequentialIntegerTradeCallback, ThreshCallback
-from cryptofeed_werks.trades.constants import VOLUME
+from cryptofeed_werks.trades import MinVolumeCallback, SequentialIntegerTradeCallback
 
 
 async def trades(trade):
@@ -20,10 +19,9 @@ if __name__ == "__main__":
             channels=[TRADES],
             callbacks={
                 TRADES: SequentialIntegerTradeCallback(
-                    ThreshCallback(
+                    MinVolumeCallback(
                         trades,
-                        thresh_attr=VOLUME,
-                        thresh_value=1000,
+                        min_volume=1000,
                         window_seconds=60,
                     )
                 )
