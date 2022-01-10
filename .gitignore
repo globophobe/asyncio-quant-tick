@@ -1,6 +1,4 @@
 __pycache__/
 dist/
-requirements.txt
-requirements-dev.txt
 feedhandler.log
-env.yaml
+.env

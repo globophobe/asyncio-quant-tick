@@ -1,19 +1,18 @@
-import os
 import re
 
+from decouple import config
 from google.api_core.exceptions import AlreadyExists
 from google.cloud import pubsub_v1
 from google.protobuf.duration_pb2 import Duration
 from invoke import task
 
-from cryptofeed_werks.constants import CRYPTOFEED_WERKS, PROJECT_ID, SERVICE_ACCOUNT
-from cryptofeed_werks.utils import (
-    get_container_name,
-    get_deploy_env_vars,
-    set_environment,
+from cryptofeed_werks.constants import (
+    CRYPTOFEED_WERKS,
+    PRODUCTION_ENV_VARS,
+    PROJECT_ID,
+    SERVICE_ACCOUNT,
 )
-
-set_environment()
+from cryptofeed_werks.utils import get_container_name
 
 NAME_REGEX = re.compile(r"^(\w+)_gcp$")
 
@@ -26,7 +25,7 @@ def create_pubsub(
     message_retention_duration=0,
     retain_acked_messages=False,
 ):
-    project_id = os.environ[PROJECT_ID]
+    project_id = config(PROJECT_ID)
     publisher = pubsub_v1.PublisherClient()
     subscriber = pubsub_v1.SubscriberClient()
     topic_path = publisher.topic_path(project_id, topic)
@@ -62,25 +61,29 @@ def create_all_pubsub(c):
     pass
 
 
-@task
-def export_requirements(c):
-    c.run("poetry export --output requirements.txt")
-    c.run("poetry export --dev --output requirements-dev.txt")
+def docker_secrets():
+    build_args = [f'{secret}="{config(secret)}"' for secret in PRODUCTION_ENV_VARS]
+    return " ".join([f"--build-arg {build_arg}" for build_arg in build_args])
 
 
 @task
-def build_container(c, hostname="asia.gcr.io", image=CRYPTOFEED_WERKS):
-    # Ensure requirements
-    export_requirements(c)
-    build_args = get_deploy_env_vars(pre="--build-arg ", sep=" ")
+def build_container(ctx, hostname="asia.gcr.io", image=CRYPTOFEED_WERKS):
     name = get_container_name(hostname, image)
-    cmd = f"""
-        docker build \
-            {build_args} \
-            --file Dockerfile \
-            --tag {name} .
-    """
-    c.run(cmd)
+    requirements = ["cryptfeed", "python-decouple"]
+    # Versions
+    reqs = "\\ ".join(
+        [
+            req
+            for req in ctx.run("poetry export --dev --without-hashes").stdout.split(
+                "\n"
+            )
+            if req.split("==")[0] in requirements
+        ]
+    )
+    # Build
+    build_args = f"--build-arg POETRY_EXPORT={reqs} " + docker_secrets()
+    cmd = f"docker build {build_args} --file Dockerfile --tag {name} ."
+    ctx.run(cmd)
 
 
 @task
@@ -98,7 +101,7 @@ def deploy_container(
     zone="asia-northeast1-a",
 ):
     container_name = container_name or get_container_name(tag="latest")
-    service_account = os.environ.get(SERVICE_ACCOUNT)
+    service_account = config(SERVICE_ACCOUNT)
     # A best practice is to set the full cloud-platform access scope on the instance,
     # then securely limit the service account's API access with IAM roles.
     # https://cloud.google.com/compute/docs/access/service-accounts#accesscopesiam
