@@ -1,8 +1,10 @@
 from cryptofeed.defines import TRADES
 from cryptofeed.exchanges import Bitflyer
 
+from ..exchange import Exchange
 
-class BitflyerExchange(Bitflyer):
+
+class BitflyerExchange(Exchange, Bitflyer):
     async def _trade(self, msg: dict, timestamp: float):
         """
         {
@@ -29,14 +31,15 @@ class BitflyerExchange(Bitflyer):
             price = update["price"]
             notional = update["size"]
             volume = price * notional
-            await self.callback(
-                TRADES,
-                feed=self.id,
-                uid=update["id"],
-                symbol=pair,  # Do not normalize
-                timestamp=self.timestamp_normalize(update["exec_date"]),
-                price=price,
-                volume=volume,
-                notional=notional,
-                tickRule=1 if update["side"] == "BUY" else -1,
-            )
+            ts = self.timestamp_normalize(update["exec_date"])
+            trade = {
+                "exchange": self.id,
+                "uid": update["id"],
+                "symbol": pair,  # Do not normalize
+                "timestamp": ts,
+                "price": price,
+                "volume": volume,
+                "notional": notional,
+                "tickRule": 1 if update["side"] == "BUY" else -1,
+            }
+            await self.callback(TRADES, trade, ts)

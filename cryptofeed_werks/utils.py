@@ -2,6 +2,7 @@ import base64
 import json
 import os
 from pathlib import Path
+from typing import Optional
 
 from google.api_core import retry
 from google.cloud import pubsub_v1
@@ -131,18 +132,22 @@ def base64_decode_event(event):
         return {}
 
 
-def base64_encode_dict(data):
+def base64_encode_dict(data: dict) -> str:
     d = json.dumps(data).encode()
     return base64.b64encode(d)
 
 
-def publish(topic_id, data):
+def publish(topic_id: str, data: dict) -> None:
     publisher = pubsub_v1.PublisherClient()
     topic_path = publisher.topic_path(os.environ[PROJECT_ID], topic_id)
     publisher.publish(topic_path, json.dumps(data).encode())
 
 
-def get_container_name(hostname="asia.gcr.io", image=CRYPTOFEED_WERKS, tag=None):
+def get_container_name(
+    hostname: str = "asia.gcr.io",
+    image: str = CRYPTOFEED_WERKS,
+    tag: Optional[str] = None,
+) -> str:
     project_id = os.environ[PROJECT_ID]
     container_name = f"{hostname}/{project_id}/{image}"
     if tag:

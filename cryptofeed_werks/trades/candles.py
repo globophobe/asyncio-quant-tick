@@ -1,3 +1,6 @@
+from decimal import Decimal
+from typing import List, Optional
+
 from cryptofeed.backends.aggregate import AggregateCallback
 
 from .base import WindowMixin
@@ -5,19 +8,21 @@ from .constants import NOTIONAL
 
 
 class CandleCallback(WindowMixin, AggregateCallback):
-    def __init__(self, *args, window_seconds=60, top_n=None, **kwargs):
+    def __init__(
+        self, *args, window_seconds: int = 60, top_n: Optional[int] = None, **kwargs
+    ) -> None:
         super().__init__(*args, **kwargs)
         self.window_seconds = window_seconds
         self.window = {}
         self.top_n = top_n
         self.trades = {}
 
-    async def __call__(self, trade: dict):
+    async def __call__(self, trade: dict) -> None:
         candle = self.main(trade)
         if candle is not None:
             await self.handler(candle)
 
-    def main(self, trade: dict):
+    def main(self, trade: dict) -> Optional[dict]:
         symbol = trade["symbol"]
         timestamp = trade["timestamp"]
         self.trades.setdefault(symbol, [])
@@ -38,11 +43,11 @@ class CandleCallback(WindowMixin, AggregateCallback):
         else:
             self.trades[symbol].append(trade)
 
-    def aggregate(self, trades, is_late=False):
+    def aggregate(self, trades: List[dict], is_late: bool = False) -> Optional[dict]:
         first_trade = trades[0]
         prices = self.get_prices(trades)
         candle = {
-            "feed": first_trade["feed"],
+            "exchange": first_trade["exchange"],
             "symbol": first_trade["symbol"],
             "timestamp": self.get_start(first_trade["timestamp"]),
             "open": first_trade["price"],
@@ -60,7 +65,7 @@ class CandleCallback(WindowMixin, AggregateCallback):
             candle["topN"] = self.get_top_n(trades)
         return candle
 
-    def get_prices(self, trades):
+    def get_prices(self, trades: List[dict]) -> List[Decimal]:
         prices = []
         for trade in trades:
             for key in ("price", "high", "low"):
@@ -69,7 +74,7 @@ class CandleCallback(WindowMixin, AggregateCallback):
                     prices.append(value)
         return prices
 
-    def get_top_n(self, trades):
+    def get_top_n(self, trades: List[dict]) -> List[dict]:
         filtered = [t for t in trades if "uid" in t]
         filtered.sort(key=lambda t: t[NOTIONAL], reverse=True)
         top_n = filtered[: self.top_n]

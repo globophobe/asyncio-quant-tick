@@ -1,10 +1,13 @@
 from decimal import Decimal
 
-from cryptofeed.defines import BUY, LIQUIDATIONS, SELL, TRADES
+from cryptofeed.defines import BUY, FILLED, LIQUIDATIONS, SELL, TRADES
 from cryptofeed.exchanges import FTX
+from cryptofeed.types import Liquidation
+
+from ..exchange import Exchange
 
 
-class FTXExchange(FTX):
+class FTXExchange(Exchange, FTX):
     async def _trade(self, msg: dict, timestamp: float):
         """
         {
@@ -22,29 +25,31 @@ class FTXExchange(FTX):
         }
         """
         for trade in msg["data"]:
+            ts = float(self.timestamp_normalize(trade["time"]))
             price = Decimal(trade["price"])
             notional = Decimal(trade["size"])
             volume = price * notional
-            await self.callback(
-                TRADES,
-                feed=self.id,
-                uid=trade["id"],
-                symbol=msg["market"],  # Do not normalize
-                timestamp=float(self.timestamp_normalize(trade["time"])),
-                price=price,
-                volume=volume,
-                notional=notional,
-                tickRule=1 if trade["side"] == "buy" else -1,
-            )
+            t = {
+                "exchange": self.id,
+                "uid": trade["id"],
+                "symbol": msg["market"],  # Do not normalize
+                "timestamp": ts,
+                "price": price,
+                "volume": volume,
+                "notional": notional,
+                "tickRule": 1 if trade["side"] == "buy" else -1,
+            }
+            await self.callback(TRADES, t, ts)
             if bool(trade["liquidation"]):
-                await self.callback(
-                    LIQUIDATIONS,
-                    feed=self.id,
-                    symbol=msg["market"],
-                    side=BUY if trade["side"] == "buy" else SELL,
-                    leaves_qty=Decimal(trade["size"]),
-                    price=Decimal(trade["price"]),
-                    order_id=trade["id"],
-                    timestamp=float(self.timestamp_normalize(self.id, trade["time"])),
-                    receipt_timestamp=timestamp,
+                liq = Liquidation(
+                    self.id,
+                    msg["market"],
+                    BUY if trade["side"] == "buy" else SELL,
+                    Decimal(trade["size"]),
+                    Decimal(trade["price"]),
+                    str(trade["id"]),
+                    FILLED,
+                    ts,
+                    raw=trade,
                 )
+                await self.callback(LIQUIDATIONS, liq, ts)
