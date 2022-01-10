@@ -4,17 +4,13 @@ from typing import List, Optional
 from cryptofeed.backends.aggregate import AggregateCallback
 
 from .base import WindowMixin
-from .constants import NOTIONAL
 
 
 class CandleCallback(WindowMixin, AggregateCallback):
-    def __init__(
-        self, *args, window_seconds: int = 60, top_n: Optional[int] = None, **kwargs
-    ) -> None:
+    def __init__(self, *args, window_seconds: int = 60, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.window_seconds = window_seconds
         self.window = {}
-        self.top_n = top_n
         self.trades = {}
 
     async def __call__(self, trade: dict) -> None:
@@ -46,7 +42,7 @@ class CandleCallback(WindowMixin, AggregateCallback):
     def aggregate(self, trades: List[dict], is_late: bool = False) -> Optional[dict]:
         first_trade = trades[0]
         prices = self.get_prices(trades)
-        candle = {
+        return {
             "exchange": first_trade["exchange"],
             "symbol": first_trade["symbol"],
             "timestamp": self.get_start(first_trade["timestamp"]),
@@ -61,9 +57,6 @@ class CandleCallback(WindowMixin, AggregateCallback):
             "totalBuyTicks": sum([t["totalBuyTicks"] for t in trades]),
             "totalTicks": sum([t["totalTicks"] for t in trades]),
         }
-        if self.top_n:
-            candle["topN"] = self.get_top_n(trades)
-        return candle
 
     def get_prices(self, trades: List[dict]) -> List[Decimal]:
         prices = []
@@ -73,21 +66,3 @@ class CandleCallback(WindowMixin, AggregateCallback):
                 if value:
                     prices.append(value)
         return prices
-
-    def get_top_n(self, trades: List[dict]) -> List[dict]:
-        filtered = [t for t in trades if "uid" in t]
-        filtered.sort(key=lambda t: t[NOTIONAL], reverse=True)
-        top_n = filtered[: self.top_n]
-        for trade in top_n:
-            for key in list(trade):
-                if key not in (
-                    "timestamp",
-                    "price",
-                    "volume",
-                    "notional",
-                    "tickRule",
-                    "ticks",
-                ):
-                    del trade[key]
-        top_n.sort(key=lambda t: t["timestamp"])
-        return top_n
