@@ -1,5 +1,5 @@
 from .candles import CandleCallback
-from .thresh import ThreshCallback
+from .min_volume import MinVolumeCallback
 from .trades import (
     NonSequentialIntegerTradeCallback,
     SequentialIntegerTradeCallback,
@@ -16,7 +16,7 @@ __all__ = [
     "GCPPubSubTradeCallback",
     "CandleCallback",
     "TradeCallback",
-    "ThreshCallback",
+    "MinVolumeCallback",
     "SequentialIntegerTradeCallback",
     "NonSequentialIntegerTradeCallback",
 ]

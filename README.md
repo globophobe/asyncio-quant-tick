@@ -8,7 +8,7 @@ Sequences of trades that have equal symbol, timestamp, nanoseconds, and tick rul
 
 As well, the number of messages can be reduced by 30-50%
 
-By filtering aggregated messages, for example only emitting a meesage when `thresh_attr = "volume"` is greater than `thresh_value >= 1000`, the number of messages can be reduced more.
+By filtering aggregated messages, for example only emitting a mesage when an aggregated trade is greater than `min_volume`, the number of messages can be reduced more.
 
 Example
 -------
@@ -37,7 +37,7 @@ As it was aggregated from 4 raw trades, the second trade has ticks 4.
 ]
 ```
 
-An example filtered message, emitted because the second aggregated trade `thresh_attr = "volume"` exceeds `thresh_value >= 1000`
+An example filtered message, emitted because the second aggregated trade exceeds `min_volume >= 1000`
 
 Information related to the first trade is aggregated with the second.
 
@@ -69,15 +69,20 @@ For settings, see [demo.py](https://github.com/globophobe/cryptofeed-werks/blob/
 Supported exchanges
 -------------------
 
-* Binance
-* Bitfinex
-* Bitflyer
-* BitMEX
-* Bybit
-* Coinbase Pro
-* Deribit
-* FTX
-* Upbit
+:white_check_mark: Binance
+:white_check_mark: Bitfinex
+:white_check_mark: Bitflyer
+:white_check_mark: BitMEX
+:white_check_mark: Bybit
+:white_check_mark: Coinbase Pro
+:white_check_mark: Deribit
+:white_check_mark: FTX
+:white_check_mark: Upbit
+
+Contributing
+------------
+
+Install dependencies with `poetry install`. The demo is built with [invoke tasks](https://github.com/globophobe/cryptofeed-werks/blob/master/tasks.py). For example, `invoke build`
 
 Future plans
 ------------
