@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-import os
-
 import sentry_sdk
 from cryptofeed import FeedHandler
 from cryptofeed.defines import TRADES
+from decouple import config
 
 from cryptofeed_werks.constants import SENTRY_DSN
 from cryptofeed_werks.exchanges import (
@@ -18,13 +17,11 @@ from cryptofeed_werks.exchanges import (
 )
 from cryptofeed_werks.trades import (
     CandleCallback,
+    MinVolumeCallback,
     NonSequentialIntegerTradeCallback,
     SequentialIntegerTradeCallback,
-    ThreshCallback,
     TradeCallback,
 )
-from cryptofeed_werks.trades.constants import VOLUME
-from cryptofeed_werks.utils import is_local, set_environment
 
 sequential_integer_exchanges = {
     BinanceExchange: ["BTC-USDT"],
@@ -48,30 +45,19 @@ async def trades(trade):
     print(trade)
 
 
-def get_callback(
-    exchange, thresh_attr=VOLUME, thresh_value=1000, window_seconds=60, top_n=25
-):
+def get_callback(exchange, min_volume=1000, window_seconds=60):
     if exchange == BitflyerExchange:
-        thresh_value *= 100
+        min_volume *= 100
     elif exchange == UpbitExchange:
-        thresh_value *= 1000
+        min_volume *= 1000
     candle_callback = CandleCallback(trades, window_seconds=window_seconds)
-    return ThreshCallback(
-        candle_callback,
-        thresh_attr=VOLUME,
-        thresh_value=thresh_value,
-        window_seconds=window_seconds,
+    return MinVolumeCallback(
+        candle_callback, min_volume=min_volume, window_seconds=window_seconds
     )
 
 
 if __name__ == "__main__":
-    if is_local():
-        set_environment()
-
-    sentry_sdk.init(
-        os.environ.get(SENTRY_DSN),
-        traces_sample_rate=1.0,
-    )
+    sentry_sdk.init(config(SENTRY_DSN), traces_sample_rate=1.0)
 
     fh = FeedHandler()
 

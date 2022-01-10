@@ -5,7 +5,6 @@ from cryptofeed.backends.gcppubsub import GCPPubSubCallback
 from gcloud.aio.pubsub import PublisherClient, PubsubMessage
 from yapic import json
 
-from ...utils import is_local, set_environment
 from ..constants import PROJECT_ID
 from .utils import normalize_symbol
 
@@ -16,9 +15,6 @@ class GCPPubSubTradeCallback(GCPPubSubCallback):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.topics = {}
-
-        if is_local():
-            set_environment()
 
     def get_topic(self) -> str:
         # By symbol
