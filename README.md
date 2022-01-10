@@ -1,6 +1,6 @@
 # What?
 
-This is the basis of a pipeline for live data from cryptocurrency exchanges. It normalizes [cryptofeed](https://github.com/bmoscon/cryptofeed) WebSocket messages, aggregates, and optionally publishes them to GCP Pub/Sub and/or Firestore.
+This is the basis of a pipeline for live data from cryptocurrency exchanges. It normalizes [cryptofeed](https://github.com/bmoscon/cryptofeed) WebSocket messages, aggregates, and optionally publishes them to GCP Pub/Sub.
 
 # How?
 

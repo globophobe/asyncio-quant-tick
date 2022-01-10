@@ -3,9 +3,11 @@ from decimal import Decimal
 from cryptofeed.defines import ASK, BID, L3_BOOK, TRADES
 from cryptofeed.exchanges import Coinbase
 
+from ..exchange import Exchange
 
-class CoinbaseExchange(Coinbase):
-    async def _book_update(self, msg: dict, timestamp: float):
+
+class CoinbaseExchange(Exchange, Coinbase):
+    async def _book_update(self, msg: dict, timestamp: float) -> None:
         """
         {
             'type': 'match', or last_match
@@ -23,9 +25,10 @@ class CoinbaseExchange(Coinbase):
         pair = msg["product_id"]
         ts = self.timestamp_normalize(msg["time"])
 
-        if self.keep_l3_book and (
-            "full" in self.channels
-            or ("full" in self.subscription and pair in self.subscription["full"])
+        if (
+            self.keep_l3_book
+            and "full" in self.subscription
+            and pair in self.subscription["full"]
         ):
             delta = {BID: [], ASK: []}
             price = Decimal(msg["price"])
@@ -39,29 +42,35 @@ class CoinbaseExchange(Coinbase):
                 del self.order_map[maker_order_id]
                 self.order_type_map.pop(maker_order_id, None)
                 delta[side].append((maker_order_id, price, 0))
-                del self.l3_book[pair][side][price][maker_order_id]
-                if len(self.l3_book[pair][side][price]) == 0:
-                    del self.l3_book[pair][side][price]
+                del self._l3_book[pair].book[side][price][maker_order_id]
+                if len(self._l3_book[pair].book[side][price]) == 0:
+                    del self._l3_book[pair].book[side][price]
             else:
                 self.order_map[maker_order_id] = (price, new_size)
-                self.l3_book[pair][side][price][maker_order_id] = new_size
+                self._l3_book[pair].book[side][price][maker_order_id] = new_size
                 delta[side].append((maker_order_id, price, new_size))
 
             await self.book_callback(
-                self.l3_book[pair], L3_BOOK, pair, False, delta, ts, timestamp
+                L3_BOOK,
+                self._l3_book[pair],
+                timestamp,
+                timestamp=ts,
+                delta=delta,
+                raw=msg,
+                sequence_number=self.seq_no[pair],
             )
 
         price = Decimal(msg["price"])
         notional = Decimal(msg["size"])
         volume = price * notional
-        await self.callback(
-            TRADES,
-            feed=self.id,
-            uid=int(msg["trade_id"]),
-            symbol=msg["product_id"],  # Do not normalize
-            timestamp=ts,
-            price=price,
-            volume=volume,
-            notional=notional,
-            tickRule=1 if msg["side"] == "sell" else -1,
-        )
+        trade = {
+            "exchange": self.id,
+            "uid": int(msg["trade_id"]),
+            "symbol": msg["product_id"],  # Do not normalize
+            "timestamp": ts,
+            "price": price,
+            "volume": volume,
+            "notional": notional,
+            "tickRule": 1 if msg["side"] == "sell" else -1,
+        }
+        await self.callback(TRADES, trade, ts)

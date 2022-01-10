@@ -3,8 +3,10 @@ from decimal import Decimal
 from cryptofeed.defines import TRADES
 from cryptofeed.exchanges import Binance
 
+from ..exchange import Exchange
 
-class BinanceExchange(Binance):
+
+class BinanceExchange(Exchange, Binance):
     def __init__(self, *args, **kwargs):
         """
         Cryptofeed uses aggregate trade streams.
@@ -40,16 +42,17 @@ class BinanceExchange(Binance):
         volume = price * notional
         ticks = msg["l"] - msg["f"] + 1
         assert ticks >= 1, "Ticks not greater than or equal to 1"
-        await self.callback(
-            TRADES,
-            feed=self.id,
-            uid=int(msg["l"]),  # Last trade ID
-            symbol=msg["s"],  # Do not normalize
-            timestamp=self.timestamp_normalize(msg["E"]),
-            price=price,
-            volume=volume,
-            notional=notional,
-            tickRule=-1 if msg["m"] else 1,
-            ticks=ticks,
-            isSequential=is_sequential,
-        )
+        ts = (self.timestamp_normalize(msg["E"]),)
+        trade = {
+            "exchange": self.id,
+            "uid": int(msg["l"]),  # Last trade ID
+            "symbol": msg["s"],  # Do not normalize
+            "timestamp": ts,
+            "price": price,
+            "volume": volume,
+            "notional": notional,
+            "tickRule": -1 if msg["m"] else 1,
+            "ticks": ticks,
+            "isSequential": is_sequential,
+        }
+        await self.callback(TRADES, trade, ts)

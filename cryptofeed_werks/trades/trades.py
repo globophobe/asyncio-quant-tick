@@ -1,4 +1,4 @@
-from decimal import Decimal
+from typing import Optional
 
 from cryptofeed.backends.aggregate import AggregateCallback
 
@@ -9,23 +9,23 @@ class TradeCallback(AggregateCallback):
     tick rule.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.trades = {}
 
-    async def __call__(self, *args, **kwargs):
+    async def __call__(self, *args, **kwargs) -> None:
         tick = self.main(*args, **kwargs)
         if tick is not None:
             symbol = tick["symbol"]
             self.trades[symbol] = []  # Reset
             await self.handler(tick)
 
-    def main(self, *args, **kwargs):
+    def main(self, trade: dict, timestamp: float) -> dict:
         """Subclasses override this method"""
-        trade = self.get_trade(**kwargs)
+        trade = self.get_trade(trade, timestamp)
         return self.aggregate(trade)
 
-    def aggregate(self, trade: dict):
+    def aggregate(self, trade: dict) -> Optional[dict]:
         symbol = trade["symbol"]
         trades = self.trades.setdefault(symbol, [])
         if not len(trades):
@@ -38,33 +38,14 @@ class TradeCallback(AggregateCallback):
                     return
             return self.get_tick(symbol)
 
-    def get_trade(
-        self,
-        feed: str,
-        uid: str,
-        symbol: str,
-        timestamp: float,
-        price: Decimal,
-        volume: Decimal,
-        notional: Decimal,
-        tickRule: int,
-        ticks: int = 1,
-        isSequential: bool = False,
-    ):
-        return {
-            "feed": feed,
-            "uid": uid,
-            "symbol": symbol,
-            "timestamp": timestamp,
-            "price": price,
-            "volume": volume,
-            "notional": notional,
-            "tickRule": tickRule,
-            "ticks": ticks,  # B/C Binance
-            "isSequential": isSequential,
-        }
+    def get_trade(self, trade: dict, timestamp: float) -> dict:
+        if "ticks" not in trade:
+            trade["ticks"] = 1  # b/c Binance
+        if "isSequential" not in trade:
+            trade["isSequential"] = False
+        return trade
 
-    def get_tick(self, symbol: str):
+    def get_tick(self, symbol: str) -> dict:
         trades = self.trades[symbol]
         last_trade = trades[-1]
         # Is there more than 1 trade?
@@ -85,12 +66,12 @@ class TradeCallback(AggregateCallback):
 class SequentialIntegerTradeCallback(TradeCallback):
     """Coinbase has sequential IDs"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.uids = {}
 
-    def main(self, *args, **kwargs):
-        trade = self.get_trade(**kwargs)
+    def main(self, trade: dict, timestamp: float) -> dict:
+        trade = self.get_trade(trade, timestamp)
         symbol = trade["symbol"]
         uid = self.uids.get(symbol, None)
         if uid:
@@ -104,12 +85,12 @@ class SequentialIntegerTradeCallback(TradeCallback):
 class NonSequentialIntegerTradeCallback(TradeCallback):
     """Bitfinex and FTX have non-sequential IDs"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.uids = {}
 
-    def main(self, *args, **kwargs):
-        trade = self.get_trade(**kwargs)
+    def main(self, trade: dict, timestamp: float) -> dict:
+        trade = self.get_trade(trade, timestamp)
         symbol = trade["symbol"]
         uid = self.uids.get(symbol, None)
         if uid:

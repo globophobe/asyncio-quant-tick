@@ -1,10 +1,13 @@
 from decimal import Decimal
 
-from cryptofeed.defines import BUY, LIQUIDATIONS, SELL, TRADES
+from cryptofeed.defines import BUY, FILLED, LIQUIDATIONS, SELL, TRADES
 from cryptofeed.exchanges import Deribit
+from cryptofeed.types import Liquidation
+
+from ..exchange import Exchange
 
 
-class DeribitExchange(Deribit):
+class DeribitExchange(Exchange, Deribit):
     async def _trade(self, msg: dict, timestamp: float):
         """
         {
@@ -34,26 +37,28 @@ class DeribitExchange(Deribit):
             price = Decimal(trade["price"])
             volume = Decimal(trade["amount"])
             notional = volume / price
-            await self.callback(
-                TRADES,
-                feed=self.id,
-                uid=trade["trade_id"],
-                symbol=trade["instrument_name"],  # Do not normalize
-                timestamp=self.timestamp_normalize(trade["timestamp"]),
-                price=price,
-                volume=volume,
-                notional=notional,
-                tickRule=1 if trade["direction"] == "buy" else -1,
-            )
+            ts = self.timestamp_normalize(trade["timestamp"])
+            trade = {
+                "exchange": self.id,
+                "uid": trade["trade_id"],
+                "symbol": trade["instrument_name"],  # Do not normalize
+                "timestamp": ts,
+                "price": price,
+                "volume": volume,
+                "notional": notional,
+                "tickRule": 1 if trade["direction"] == "buy" else -1,
+            }
+            await self.callback(TRADES, trade, ts)
             if "liquidation" in trade:
-                await self.callback(
-                    LIQUIDATIONS,
-                    feed=self.id,
-                    symbol=trade["instrument_name"],
-                    side=BUY if trade["direction"] == "buy" else SELL,
-                    leaves_qty=Decimal(trade["amount"]),
-                    price=Decimal(trade["price"]),
-                    order_id=trade["trade_id"],
-                    timestamp=self.timestamp_normalize(self.id, trade["timestamp"]),
-                    receipt_timestamp=timestamp,
+                liq = Liquidation(
+                    self.id,
+                    trade["instrument_name"],
+                    BUY if trade["direction"] == "buy" else SELL,
+                    Decimal(trade["amount"]),
+                    Decimal(trade["price"]),
+                    trade["trade_id"],
+                    FILLED,
+                    ts,
+                    raw=trade,
                 )
+                await self.callback(LIQUIDATIONS, liq, ts)

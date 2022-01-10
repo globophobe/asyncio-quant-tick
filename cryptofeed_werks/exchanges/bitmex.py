@@ -3,8 +3,10 @@ from decimal import Decimal
 from cryptofeed.defines import TRADES
 from cryptofeed.exchanges import Bitmex
 
+from ..exchange import Exchange
 
-class BitmexExchange(Bitmex):
+
+class BitmexExchange(Exchange, Bitmex):
     async def _trade(self, msg: dict, timestamp: float):
         """
         trade msg example
@@ -22,18 +24,18 @@ class BitmexExchange(Bitmex):
         }
         """
         for data in msg["data"]:
-            ts = self.timestamp_normalize(data["timestamp"])
             price = Decimal(data["price"])
             volume = Decimal(data["foreignNotional"])
             notional = volume / price
-            await self.callback(
-                TRADES,
-                feed=self.id,
-                uid=data["trdMatchID"],
-                symbol=data["symbol"],  # Do not normalize
-                timestamp=ts,
-                price=price,
-                volume=volume,
-                notional=notional,
-                tickRule=1 if data["side"] == "Buy" else -1,
-            )
+            ts = self.timestamp_normalize(data["timestamp"])
+            trade = {
+                "exchange": self.id,
+                "uid": data["trdMatchID"],
+                "symbol": data["symbol"],  # Do not normalize
+                "timestamp": ts,
+                "price": price,
+                "volume": volume,
+                "notional": notional,
+                "tickRule": 1 if data["side"] == "Buy" else -1,
+            }
+            await self.callback(TRADES, trade, ts)

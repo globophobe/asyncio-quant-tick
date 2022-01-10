@@ -3,8 +3,10 @@ from decimal import Decimal
 from cryptofeed.defines import TRADES
 from cryptofeed.exchanges import Upbit
 
+from ..exchange import Exchange
 
-class UpbitExchange(Upbit):
+
+class UpbitExchange(Exchange, Upbit):
     async def _trade(self, msg: dict, timestamp: float):
         """
         Doc : https://docs.upbit.com/v1.0.7/reference#시세-체결-조회
@@ -29,14 +31,15 @@ class UpbitExchange(Upbit):
         price = Decimal(msg["tp"])
         notional = Decimal(msg["tv"])
         volume = price * notional
-        await self.callback(
-            TRADES,
-            feed=self.id,
-            uid=msg["sid"],
-            symbol=msg["cd"],  # Do not normalize
-            timestamp=self.timestamp_normalize(msg["ttms"]),
-            price=price,
-            volume=volume,
-            notional=notional,
-            tickRule=1 if msg["ab"] == "BID" else -1,
-        )
+        ts = self.timestamp_normalize(msg["ttms"])
+        trade = {
+            "exchange": self.id,
+            "uid": msg["sid"],
+            "symbol": msg["cd"],  # Do not normalize
+            "timestamp": ts,
+            "price": price,
+            "volume": volume,
+            "notional": notional,
+            "tickRule": 1 if msg["ab"] == "BID" else -1,
+        }
+        await self.callback(TRADES, trade, ts)
