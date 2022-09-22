@@ -14,7 +14,7 @@ classifiers = [
 packages = [{ include = "cryptofeed_werks" }]
 
 [tool.poetry.dependencies]
-python = ">=3.7.1, <3.10"
+python = ">=3.8,<4.0"
 numpy = "*"
 google-cloud-bigquery = { version = "*", optional = true }
 google-cloud-bigquery-storage = { version = "*", optional = true }
