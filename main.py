@@ -6,53 +6,50 @@ from decouple import config
 
 from cryptofeed_werks.constants import SENTRY_DSN
 from cryptofeed_werks.exchanges import (
-    BinanceExchange,
-    BitfinexExchange,
-    BitflyerExchange,
-    BitmexExchange,
-    BybitExchange,
-    CoinbaseExchange,
-    FTXExchange,
-    UpbitExchange,
+    FTX,
+    Binance,
+    Bitfinex,
+    Bitflyer,
+    Bitmex,
+    Bybit,
+    Coinbase,
+    Upbit,
 )
 from cryptofeed_werks.trades import (
     CandleCallback,
-    MinVolumeCallback,
     NonSequentialIntegerTradeCallback,
     SequentialIntegerTradeCallback,
+    SignificantTradeCallback,
     TradeCallback,
 )
 
-sequential_integer_exchanges = {
-    BinanceExchange: ["BTC-USDT"],
-    CoinbaseExchange: ["BTC-USD"],
-}
+sequential_integer_exchanges = {Binance: ["BTCUSDT"], Coinbase: ["BTC-USD"]}
 
-non_sequential_integer_exchanges = {
-    FTXExchange: ["BTC-PERP"],
-    BitfinexExchange: ["BTCUSD"],
-}
+non_sequential_integer_exchanges = {FTX: ["BTC-PERP"], Bitfinex: ["BTCUSD"]}
 
 other_exchanges = {
-    BitmexExchange: ["XBTUSD"],
-    BybitExchange: ["BTCUSDT"],
-    # DeribitExchange: ["BTC-PERPETUAL"],
-    UpbitExchange: ["BTC-KRW"],
+    Bitmex: ["XBTUSD"],
+    Bybit: ["BTCUSD"],
+    Bitflyer: ["BTC/JPY"],
+    Upbit: ["BTC-KRW"],
 }
 
 
-async def trades(trade):
-    print(trade)
+async def candles(candle: dict, timestamp: float) -> None:
+    """Candles."""
+    print(candle)
 
 
-def get_callback(exchange, min_volume=1000, window_seconds=60):
-    if exchange == BitflyerExchange:
+def get_callback(exchange, min_volume=1_000, window_seconds=60):
+    if exchange == Bitflyer:
         min_volume *= 100
-    elif exchange == UpbitExchange:
+    elif exchange == Upbit:
         min_volume *= 1000
-    candle_callback = CandleCallback(trades, window_seconds=window_seconds)
-    return MinVolumeCallback(
-        candle_callback, min_volume=min_volume, window_seconds=window_seconds
+    candle_callback = CandleCallback(candles, window_seconds=window_seconds)
+    return SignificantTradeCallback(
+        candle_callback,
+        significant_trade_filter=min_volume,
+        window_seconds=window_seconds,
     )
 
 

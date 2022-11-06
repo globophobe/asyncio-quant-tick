@@ -1,13 +1,14 @@
 from decimal import Decimal
+from typing import Any
 
-from cryptofeed.defines import ASK, BID, L3_BOOK, TRADES
-from cryptofeed.exchanges import Coinbase
+from cryptofeed.defines import ASK, BID, L3_BOOK, SELL, TRADES
+from cryptofeed.exchanges import Coinbase as BaseCoinbase
 
-from ..exchange import Exchange
+from ..feed import Feed
 
 
-class CoinbaseExchange(Exchange, Coinbase):
-    async def _book_update(self, msg: dict, timestamp: float) -> None:
+class Coinbase(Feed, BaseCoinbase):
+    async def _book_update(self, msg: dict, timestamp: float) -> Any:
         """
         {
             'type': 'match', or last_match
@@ -63,14 +64,14 @@ class CoinbaseExchange(Exchange, Coinbase):
         price = Decimal(msg["price"])
         notional = Decimal(msg["size"])
         volume = price * notional
-        trade = {
-            "exchange": self.id,
+        t = {
+            "exchange": self.id.lower(),
             "uid": int(msg["trade_id"]),
             "symbol": msg["product_id"],  # Do not normalize
-            "timestamp": ts,
+            "timestamp": self.parse_datetime(msg["time"]),
             "price": price,
             "volume": volume,
             "notional": notional,
-            "tickRule": 1 if msg["side"] == "sell" else -1,
+            "tickRule": 1 if msg["side"].lower() == SELL else -1,
         }
-        await self.callback(TRADES, trade, ts)
+        await self.callback(TRADES, t, ts)

@@ -2,27 +2,28 @@
 
 from cryptofeed import FeedHandler
 from cryptofeed.defines import TRADES
+from cryptofeed_werks.exchanges import Coinbase
+from cryptofeed_werks.trades import (
+    SequentialIntegerTradeCallback,
+    SignificantTradeCallback,
+)
 
-from cryptofeed_werks.exchanges import CoinbaseExchange
-from cryptofeed_werks.trades import MinVolumeCallback, SequentialIntegerTradeCallback
 
-
-async def trades(trade):
+async def trades(trade: dict, timestamp: float) -> None:
+    """Trades."""
     print(trade)
 
 
 if __name__ == "__main__":
     fh = FeedHandler()
     fh.add_feed(
-        CoinbaseExchange(
+        Coinbase(
             symbols=["BTC-USD"],
             channels=[TRADES],
             callbacks={
                 TRADES: SequentialIntegerTradeCallback(
-                    MinVolumeCallback(
-                        trades,
-                        min_volume=1000,
-                        window_seconds=60,
+                    SignificantTradeCallback(
+                        trades, significant_trade_filter=1_000, window_seconds=60
                     )
                 )
             },

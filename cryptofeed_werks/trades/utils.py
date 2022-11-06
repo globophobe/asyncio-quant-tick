@@ -1,7 +1,8 @@
 from decimal import Decimal
 
 
-def decimal_to_str(data: dict):
+def decimal_to_str(data: dict) -> str:
+    """Decimal to str."""
     for key, value in data.items():
         if isinstance(value, dict):
             data[key] = decimal_to_str(value)
@@ -16,7 +17,8 @@ def decimal_to_str(data: dict):
     return data
 
 
-def normalize_symbol(feed: str, symbol: str):
+def normalize_symbol(feed: str, symbol: str) -> str:
+    """Normalize symbol."""
     for char in ("-", "/", "_"):
         symbol = symbol.replace(char, "")
     if feed == "upbit":

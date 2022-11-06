@@ -1,13 +1,20 @@
+from datetime import datetime, timezone
 from decimal import Decimal
+from typing import Tuple
 
-from cryptofeed.defines import TRADES
-from cryptofeed.exchanges import Upbit
+import pandas as pd
+from cryptofeed.defines import BID, TRADES
+from cryptofeed.exchanges import Upbit as BaseUpbit
 
-from ..exchange import Exchange
+from ..feed import Feed
 
 
-class UpbitExchange(Exchange, Upbit):
-    async def _trade(self, msg: dict, timestamp: float):
+class Upbit(Feed, BaseUpbit):
+    def parse_datetime(self, value: int, unit: str = "ms") -> datetime:
+        """Parse datetime with pandas."""
+        return pd.Timestamp(value, unit=unit).replace(tzinfo=timezone.utc)
+
+    async def _trade(self, msg: dict, timestamp: float) -> Tuple[str, dict, float]:
         """
         Doc : https://docs.upbit.com/v1.0.7/reference#시세-체결-조회
         {
@@ -31,15 +38,14 @@ class UpbitExchange(Exchange, Upbit):
         price = Decimal(msg["tp"])
         notional = Decimal(msg["tv"])
         volume = price * notional
-        ts = self.timestamp_normalize(msg["ttms"])
-        trade = {
-            "exchange": self.id,
+        t = {
+            "exchange": self.id.lower(),
             "uid": msg["sid"],
-            "symbol": msg["cd"],  # Do not normalize
-            "timestamp": ts,
+            "symbol": msg["cd"],
+            "timestamp": self.parse_datetime(msg["ttms"]),
             "price": price,
             "volume": volume,
             "notional": notional,
-            "tickRule": 1 if msg["ab"] == "BID" else -1,
+            "tickRule": 1 if msg["ab"].lower() == BID else -1,
         }
-        await self.callback(TRADES, trade, ts)
+        await self.callback(TRADES, t, self.timestamp_normalize(msg["ttms"]))

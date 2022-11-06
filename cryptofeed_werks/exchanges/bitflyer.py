@@ -1,11 +1,21 @@
-from cryptofeed.defines import TRADES
-from cryptofeed.exchanges import Bitflyer
+from typing import Tuple
 
-from ..exchange import Exchange
+from cryptofeed.defines import BUY, TRADES
+from cryptofeed.exchanges import Bitflyer as BaseBitflyer
+
+from ..feed import Feed
 
 
-class BitflyerExchange(Exchange, Bitflyer):
-    async def _trade(self, msg: dict, timestamp: float):
+class Bitflyer(Feed, BaseBitflyer):
+    def std_symbol_to_exchange_symbol(self, symbol: str) -> str:
+        """Standard symbol to exchange symbol."""
+        return symbol.replace("/", "_")
+
+    def exchange_symbol_to_std_symbol(self, symbol: str) -> str:
+        """Exchange symbol to standard symbol."""
+        return symbol.replace("_", "/")
+
+    async def _trade(self, msg: dict, timestamp: float) -> Tuple[str, dict, float]:
         """
         {
             "jsonrpc":"2.0",
@@ -31,15 +41,14 @@ class BitflyerExchange(Exchange, Bitflyer):
             price = update["price"]
             notional = update["size"]
             volume = price * notional
-            ts = self.timestamp_normalize(update["exec_date"])
-            trade = {
-                "exchange": self.id,
+            t = {
+                "exchange": self.id.lower(),
                 "uid": update["id"],
-                "symbol": pair,  # Do not normalize
-                "timestamp": ts,
+                "symbol": self.exchange_symbol_to_std_symbol(pair),
+                "timestamp": self.parse_datetime(update["exec_date"]),
                 "price": price,
                 "volume": volume,
                 "notional": notional,
-                "tickRule": 1 if update["side"] == "BUY" else -1,
+                "tickRule": 1 if update["side"] == BUY else -1,
             }
-            await self.callback(TRADES, trade, ts)
+            await self.callback(TRADES, t, timestamp)

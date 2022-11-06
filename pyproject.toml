@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "cryptofeed-werks"
-version = "0.1.2"
-description = "Pipeline for live data from cryptocurrency exchanges"
+version = "0.1.3"
+description = "WebSocket subclasses, and experiments, for data from cryptocurrency exchanges"
 authors = ["Alex <globophobe@gmail.com>"]
 readme = "README.md"
 license = "MIT"
@@ -15,26 +15,26 @@ packages = [{ include = "cryptofeed_werks" }]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
-numpy = "*"
+cryptofeed = "*"
 google-cloud-bigquery = { version = "*", optional = true }
 google-cloud-bigquery-storage = { version = "*", optional = true }
 google-cloud-pubsub = { version = "*", optional = true }
-google-cloud-firestore = { version = "*", optional = true }
-sentry-sdk = { version = "*", optional = true }
-cryptofeed = "*"
-python-decouple = "*"
+httpx = { version = "*", optional = true }
+pandas = "*"
 
 [tool.poetry.dev-dependencies]
 black = "*"
 flake8 = "*"
 isort = "*"
 invoke = "*"
+python-decouple = "*"
+sentry-sdk = "*"
 
 [tool.poetry.extras]
-all = ["google-cloud-bigquery", "google-cloud-bigquery-storage", "google-cloud-pubsub", "google-cloud-firestore", "sentry-sdk"]
+all = ["google-cloud-bigquery", "google-cloud-bigquery-storage", "google-cloud-pubsub", "httpx"]
 bigquery = ["google-cloud-bigquery", "google-cloud-bigquery-storage"]
-firestore = ["google-cloud-firestore"]
-sentry = ["sentry-sdk"]
+httpx = ["httpx"]
+pubsub = ["google-cloud-pubsub"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

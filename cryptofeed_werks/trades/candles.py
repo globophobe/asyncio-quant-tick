@@ -1,9 +1,9 @@
 from decimal import Decimal
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from cryptofeed.backends.aggregate import AggregateCallback
 
-from .base import WindowMixin
+from .window import WindowMixin
 
 
 class CandleCallback(WindowMixin, AggregateCallback):
@@ -13,10 +13,10 @@ class CandleCallback(WindowMixin, AggregateCallback):
         self.window = {}
         self.trades = {}
 
-    async def __call__(self, trade: dict) -> None:
+    async def __call__(self, trade: dict, timestamp: float) -> Tuple[dict, float]:
         candle = self.main(trade)
         if candle is not None:
-            await self.handler(candle)
+            await self.handler(candle, timestamp)
 
     def main(self, trade: dict) -> Optional[dict]:
         symbol = trade["symbol"]
@@ -40,6 +40,7 @@ class CandleCallback(WindowMixin, AggregateCallback):
             self.trades[symbol].append(trade)
 
     def aggregate(self, trades: List[dict], is_late: bool = False) -> Optional[dict]:
+        """Aggregate."""
         first_trade = trades[0]
         prices = self.get_prices(trades)
         return {
@@ -59,6 +60,7 @@ class CandleCallback(WindowMixin, AggregateCallback):
         }
 
     def get_prices(self, trades: List[dict]) -> List[Decimal]:
+        """Get prices."""
         prices = []
         for trade in trades:
             for key in ("price", "high", "low"):

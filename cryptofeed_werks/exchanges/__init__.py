@@ -1,21 +1,19 @@
-from .binance import BinanceExchange
-from .bitfinex import BitfinexExchange
-from .bitflyer import BitflyerExchange
-from .bitmex import BitmexExchange
-from .bybit import BybitExchange
-from .coinbase import CoinbaseExchange
-from .deribit import DeribitExchange
-from .ftx import FTXExchange
-from .upbit import UpbitExchange
+from .binance import Binance
+from .bitfinex import Bitfinex
+from .bitflyer import Bitflyer
+from .bitmex import Bitmex
+from .bybit import Bybit
+from .coinbase import Coinbase
+from .ftx import FTX
+from .upbit import Upbit
 
 __all__ = [
-    "BinanceExchange",
-    "BitmexExchange",
-    "BitfinexExchange",
-    "BitflyerExchange",
-    "BybitExchange",
-    "CoinbaseExchange",
-    "DeribitExchange",
-    "FTXExchange",
-    "UpbitExchange",
+    "Binance",
+    "Bitmex",
+    "Bitfinex",
+    "Bitflyer",
+    "Bybit",
+    "Coinbase",
+    "FTX",
+    "Upbit",
 ]

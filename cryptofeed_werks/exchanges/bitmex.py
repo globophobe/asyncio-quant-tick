@@ -1,13 +1,14 @@
 from decimal import Decimal
+from typing import Tuple
 
-from cryptofeed.defines import TRADES
-from cryptofeed.exchanges import Bitmex
+from cryptofeed.defines import BUY, TRADES
+from cryptofeed.exchanges import Bitmex as BaseBitmex
 
-from ..exchange import Exchange
+from ..feed import Feed
 
 
-class BitmexExchange(Exchange, Bitmex):
-    async def _trade(self, msg: dict, timestamp: float):
+class Bitmex(Feed, BaseBitmex):
+    async def _trade(self, msg: dict, timestamp: float) -> Tuple[str, dict, float]:
         """
         trade msg example
         {
@@ -27,15 +28,14 @@ class BitmexExchange(Exchange, Bitmex):
             price = Decimal(data["price"])
             volume = Decimal(data["foreignNotional"])
             notional = volume / price
-            ts = self.timestamp_normalize(data["timestamp"])
-            trade = {
-                "exchange": self.id,
+            t = {
+                "exchange": self.id.lower(),
                 "uid": data["trdMatchID"],
-                "symbol": data["symbol"],  # Do not normalize
-                "timestamp": ts,
+                "symbol": data["symbol"],
+                "timestamp": self.parse_datetime(data["timestamp"]),
                 "price": price,
                 "volume": volume,
                 "notional": notional,
-                "tickRule": 1 if data["side"] == "Buy" else -1,
+                "tickRule": 1 if data["side"].lower() == BUY else -1,
             }
-            await self.callback(TRADES, trade, ts)
+            await self.callback(TRADES, t, timestamp)
