@@ -1,22 +1,28 @@
+from datetime import datetime, timezone
 from decimal import Decimal
+from typing import Tuple
 
+import pandas as pd
 from cryptofeed.defines import TRADES
-from cryptofeed.exchanges import Binance
+from cryptofeed.exchanges import Binance as BaseBinance
 
-from ..exchange import Exchange
+from ..feed import Feed
 
 
-class BinanceExchange(Exchange, Binance):
+class Binance(Feed, BaseBinance):
     def __init__(self, *args, **kwargs):
-        """
-        Cryptofeed uses aggregate trade streams.
-        The raw trade stream is absolute trash and is frequently missing trades.
-        """
         super().__init__(*args, **kwargs)
         self.last_id = None
 
-    async def _trade(self, msg: dict, timestamp: float):
+    def parse_datetime(self, value: int, unit: str = "ms") -> datetime:
+        """Parse datetime with pandas."""
+        return pd.Timestamp(value, unit="ms").replace(tzinfo=timezone.utc)
+
+    async def _trade(self, msg: dict, timestamp: float) -> Tuple[str, dict, float]:
         """
+        Cryptofeed uses aggregate trade streams.
+        The raw trade stream frequently misses trades, and is absolute trash.
+
         {
           "e": "aggTrade",  // Event type
           "E": 123456789,   // Event time
@@ -42,12 +48,11 @@ class BinanceExchange(Exchange, Binance):
         volume = price * notional
         ticks = msg["l"] - msg["f"] + 1
         assert ticks >= 1, "Ticks not greater than or equal to 1"
-        ts = (self.timestamp_normalize(msg["E"]),)
-        trade = {
-            "exchange": self.id,
-            "uid": int(msg["l"]),  # Last trade ID
-            "symbol": msg["s"],  # Do not normalize
-            "timestamp": ts,
+        t = {
+            "exchange": self.id.lower(),
+            "uid": self.last_id,
+            "symbol": msg["s"],
+            "timestamp": self.parse_datetime(msg["T"]),
             "price": price,
             "volume": volume,
             "notional": notional,
@@ -55,4 +60,4 @@ class BinanceExchange(Exchange, Binance):
             "ticks": ticks,
             "isSequential": is_sequential,
         }
-        await self.callback(TRADES, trade, ts)
+        await self.callback(TRADES, t, timestamp)

@@ -1,14 +1,15 @@
 from decimal import Decimal
+from typing import Tuple
 
 from cryptofeed.defines import BUY, FILLED, LIQUIDATIONS, SELL, TRADES
-from cryptofeed.exchanges import FTX
+from cryptofeed.exchanges import FTX as BaseFTX
 from cryptofeed.types import Liquidation
 
-from ..exchange import Exchange
+from ..feed import Feed
 
 
-class FTXExchange(Exchange, FTX):
-    async def _trade(self, msg: dict, timestamp: float):
+class FTX(Feed, BaseFTX):
+    async def _trade(self, msg: dict, timestamp: float) -> Tuple[str, dict, float]:
         """
         {
             "channel": "trades",
@@ -30,14 +31,14 @@ class FTXExchange(Exchange, FTX):
             notional = Decimal(trade["size"])
             volume = price * notional
             t = {
-                "exchange": self.id,
+                "exchange": self.id.lower(),
                 "uid": trade["id"],
-                "symbol": msg["market"],  # Do not normalize
-                "timestamp": ts,
+                "symbol": msg["market"],
+                "timestamp": self.parse_datetime(trade["time"]),
                 "price": price,
                 "volume": volume,
                 "notional": notional,
-                "tickRule": 1 if trade["side"] == "buy" else -1,
+                "tickRule": 1 if trade["side"] == BUY else -1,
             }
             await self.callback(TRADES, t, ts)
             if bool(trade["liquidation"]):
