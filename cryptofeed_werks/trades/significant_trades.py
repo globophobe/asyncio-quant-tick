@@ -1,33 +1,33 @@
 from decimal import Decimal
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from cryptofeed.backends.aggregate import AggregateCallback
 
-from .base import WindowMixin
 from .constants import NOTIONAL, TICKS, VOLUME
+from .window import WindowMixin
 
 
-class MinVolumeCallback(WindowMixin, AggregateCallback):
+class SignificantTradeCallback(WindowMixin, AggregateCallback):
     def __init__(
         self,
         *args,
-        min_volume: int = 1000,
+        significant_trade_filter: int = 1000,
         window_seconds: Optional[int] = None,
         **kwargs
     ) -> None:
         super().__init__(*args, **kwargs)
-        self.min_volume = Decimal(min_volume)
+        self.significant_trade_filter = Decimal(significant_trade_filter)
         self.trades = {}
         self.window_seconds = window_seconds
         self.window = {}
 
-    async def __call__(self, *args, **kwargs) -> None:
-        result = self.main(*args, **kwargs)
+    async def __call__(self, trade: dict, timestamp: float) -> Tuple[dict, float]:
+        result = self.main(trade)
         if isinstance(result, list):
-            for tick in result:
-                await self.handler(tick)
+            for t in result:
+                await self.handler(t, timestamp)
         elif isinstance(result, dict):
-            await self.handler(result)
+            await self.handler(result, timestamp)
 
     def main(self, trade: dict) -> dict:
         symbol = trade["symbol"]
@@ -49,7 +49,7 @@ class MinVolumeCallback(WindowMixin, AggregateCallback):
                 # Append trade
                 self.trades[symbol].append(trade)
                 # Maybe another tick
-                if trade[VOLUME] >= self.min_volume:
+                if trade[VOLUME] >= self.significant_trade_filter:
                     tick = self.get_tick(symbol)
                     ticks.append(tick)
                 # Set window
@@ -57,18 +57,20 @@ class MinVolumeCallback(WindowMixin, AggregateCallback):
                 # Finally, return ticks
                 return ticks
             else:
-                return self.min_volume_or_tick(symbol, trade)
+                return self.get_significant_trade_or_tick(symbol, trade)
         else:
-            return self.min_volume_or_tick(symbol, trade)
+            return self.get_significant_trade_or_tick(symbol, trade)
 
-    def min_volume_or_tick(self, symbol: str, trade: dict) -> Optional[dict]:
-        if trade[VOLUME] < self.min_volume:
+    def get_significant_trade_or_tick(self, symbol: str, trade: dict) -> Optional[dict]:
+        """Get significant trade or tick."""
+        if trade[VOLUME] < self.significant_trade_filter:
             self.trades[symbol].append(trade)
         else:
             self.trades[symbol].append(trade)
             return self.get_tick(symbol)
 
     def aggregate(self, trades: List[dict], is_late: bool = False) -> Optional[dict]:
+        """Aggregate."""
         buy_trades = [t for t in trades if t["tickRule"] == 1]
         stats = {
             "high": max(t["price"] for t in trades),
@@ -80,11 +82,13 @@ class MinVolumeCallback(WindowMixin, AggregateCallback):
             "totalBuyTicks": sum([t[TICKS] for t in buy_trades]),
             "totalTicks": sum([t[TICKS] for t in trades]),
         }
-        greater_than_min_volume = [t for t in trades if t[VOLUME] >= self.min_volume]
+        greater_than_significant_trade_filter = [
+            t for t in trades if t[VOLUME] >= self.significant_trade_filter
+        ]
         # Are there 1 or 0 trades, which exceed min_volume?
-        assert len(greater_than_min_volume) <= 1
-        if greater_than_min_volume:
-            data = greater_than_min_volume[0]
+        assert len(greater_than_significant_trade_filter) <= 1
+        if greater_than_significant_trade_filter:
+            data = greater_than_significant_trade_filter[0]
             data.update(stats)
         else:
             last_trade = trades[-1]

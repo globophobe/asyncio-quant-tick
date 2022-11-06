@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Tuple
 
 from cryptofeed.backends.aggregate import AggregateCallback
 
@@ -13,19 +13,25 @@ class TradeCallback(AggregateCallback):
         super().__init__(*args, **kwargs)
         self.trades = {}
 
-    async def __call__(self, *args, **kwargs) -> None:
-        tick = self.main(*args, **kwargs)
-        if tick is not None:
-            symbol = tick["symbol"]
-            self.trades[symbol] = []  # Reset
-            await self.handler(tick)
+    async def __call__(self, trade: dict, timestamp: float) -> Tuple[dict, float]:
+        t = self.main(trade)
+        if t is not None:
+            await self.handler(t, timestamp)
 
-    def main(self, trade: dict, timestamp: float) -> dict:
+    def main(self, trade: dict) -> dict:
         """Subclasses override this method"""
-        trade = self.get_trade(trade, timestamp)
-        return self.aggregate(trade)
+        t = self.prepare_trade(trade)
+        return self.aggregate(t)
+
+    def prepare_trade(self, trade: dict) -> dict:
+        if "ticks" not in trade:
+            trade["ticks"] = 1  # b/c Binance
+        if "isSequential" not in trade:
+            trade["isSequential"] = False
+        return trade
 
     def aggregate(self, trade: dict) -> Optional[dict]:
+        """Aggregate."""
         symbol = trade["symbol"]
         trades = self.trades.setdefault(symbol, [])
         if not len(trades):
@@ -36,18 +42,16 @@ class TradeCallback(AggregateCallback):
                 if last_trade["tickRule"] == trade["tickRule"]:
                     self.trades[symbol].append(trade)
                     return
-            return self.get_tick(symbol)
+            aggregated = self.get_aggregated_trade(symbol)
+            self.trades[symbol] = [trade]  # Next
+            return aggregated
 
-    def get_trade(self, trade: dict, timestamp: float) -> dict:
-        if "ticks" not in trade:
-            trade["ticks"] = 1  # b/c Binance
-        if "isSequential" not in trade:
-            trade["isSequential"] = False
-        return trade
-
-    def get_tick(self, symbol: str) -> dict:
+    def get_aggregated_trade(self, symbol: str) -> dict:
+        """Get aggregated trade."""
         trades = self.trades[symbol]
-        last_trade = trades[-1]
+        from copy import copy
+
+        last_trade = copy(trades[-1])
         # Is there more than 1 trade?
         if len(trades) > 1:
             # Assert
@@ -70,16 +74,16 @@ class SequentialIntegerTradeCallback(TradeCallback):
         super().__init__(*args, **kwargs)
         self.uids = {}
 
-    def main(self, trade: dict, timestamp: float) -> dict:
-        trade = self.get_trade(trade, timestamp)
-        symbol = trade["symbol"]
+    def main(self, trade: dict) -> dict:
+        t = self.prepare_trade(trade)
+        symbol = t["symbol"]
         uid = self.uids.get(symbol, None)
         if uid:
-            trade["isSequential"] = trade["uid"] == uid + 1
+            t["isSequential"] = t["uid"] == uid + 1
         else:
-            trade["isSequential"] = True
-        self.uids["symbol"] = trade["uid"]
-        return self.aggregate(trade)
+            t["isSequential"] = True
+        self.uids["symbol"] = t["uid"]
+        return self.aggregate(t)
 
 
 class NonSequentialIntegerTradeCallback(TradeCallback):
@@ -89,13 +93,13 @@ class NonSequentialIntegerTradeCallback(TradeCallback):
         super().__init__(*args, **kwargs)
         self.uids = {}
 
-    def main(self, trade: dict, timestamp: float) -> dict:
-        trade = self.get_trade(trade, timestamp)
-        symbol = trade["symbol"]
+    def main(self, trade: dict) -> dict:
+        t = self.prepare_trade(trade)
+        symbol = t["symbol"]
         uid = self.uids.get(symbol, None)
         if uid:
-            trade["isSequential"] = trade["uid"] > uid
+            t["isSequential"] = t["uid"] > uid
         else:
-            trade["isSequential"] = True
-        self.uids["symbol"] = trade["uid"]
-        return self.aggregate(trade)
+            t["isSequential"] = True
+        self.uids["symbol"] = t["uid"]
+        return self.aggregate(t)
