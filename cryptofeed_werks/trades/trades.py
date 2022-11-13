@@ -87,7 +87,7 @@ class SequentialIntegerTradeCallback(TradeCallback):
 
 
 class NonSequentialIntegerTradeCallback(TradeCallback):
-    """Bitfinex and FTX have non-sequential IDs"""
+    """Bitfinex has non-sequential IDs"""
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)

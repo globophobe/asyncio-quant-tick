@@ -81,8 +81,6 @@ Supported exchanges
 
 :white_check_mark: Coinbase Pro
 
-:white_check_mark: FTX
-
 :white_check_mark: Upbit
 
 Contributing
