@@ -4,7 +4,6 @@ from .bitflyer import Bitflyer
 from .bitmex import Bitmex
 from .bybit import Bybit
 from .coinbase import Coinbase
-from .ftx import FTX
 from .upbit import Upbit
 
 __all__ = [
@@ -14,6 +13,5 @@ __all__ = [
     "Bitflyer",
     "Bybit",
     "Coinbase",
-    "FTX",
     "Upbit",
 ]

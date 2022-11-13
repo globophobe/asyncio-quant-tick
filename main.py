@@ -6,7 +6,6 @@ from decouple import config
 
 from cryptofeed_werks.constants import SENTRY_DSN
 from cryptofeed_werks.exchanges import (
-    FTX,
     Binance,
     Bitfinex,
     Bitflyer,
@@ -25,7 +24,7 @@ from cryptofeed_werks.trades import (
 
 sequential_integer_exchanges = {Binance: ["BTCUSDT"], Coinbase: ["BTC-USD"]}
 
-non_sequential_integer_exchanges = {FTX: ["BTC-PERP"], Bitfinex: ["BTCUSD"]}
+non_sequential_integer_exchanges = {Bitfinex: ["BTCUSD"]}
 
 other_exchanges = {
     Bitmex: ["XBTUSD"],
