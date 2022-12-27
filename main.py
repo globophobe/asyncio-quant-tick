@@ -39,12 +39,16 @@ async def candles(candle: dict, timestamp: float) -> None:
     print(candle)
 
 
-def get_callback(exchange, min_volume=1_000, window_seconds=60):
+def get_callback(
+    exchange: any, min_volume: int = 1_000, window_seconds: int = 60, top_n: int = 10
+):
     if exchange == Bitflyer:
         min_volume *= 100
     elif exchange == Upbit:
         min_volume *= 1000
-    candle_callback = CandleCallback(candles, window_seconds=window_seconds)
+    candle_callback = CandleCallback(
+        candles, window_seconds=window_seconds, top_n=top_n
+    )
     return SignificantTradeCallback(
         candle_callback,
         significant_trade_filter=min_volume,
