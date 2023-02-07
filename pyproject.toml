@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cryptofeed-werks"
-version = "0.1.4"
+version = "0.1.5"
 description = "WebSocket subclasses, and experiments, for data from cryptocurrency exchanges"
 authors = ["Alex <globophobe@gmail.com>"]
 readme = "README.md"
