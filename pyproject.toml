@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cryptofeed-werks"
-version = "0.1.5"
+version = "0.1.6"
 description = "WebSocket subclasses, and experiments, for data from cryptocurrency exchanges"
 authors = ["Alex <globophobe@gmail.com>"]
 readme = "README.md"
@@ -24,10 +24,9 @@ pandas = "*"
 
 [tool.poetry.dev-dependencies]
 black = "*"
-flake8 = "*"
-isort = "*"
 invoke = "*"
 python-decouple = "*"
+ruff = "*"
 sentry-sdk = "*"
 
 [tool.poetry.extras]
