@@ -1,31 +1,23 @@
-import re
+from typing import Any, Optional
 
 from decouple import config
-from google.api_core.exceptions import AlreadyExists
-from google.cloud import pubsub_v1
-from google.protobuf.duration_pb2 import Duration
 from invoke import task
-
-from cryptofeed_werks.constants import (
-    CRYPTOFEED_WERKS,
-    PRODUCTION_ENV_VARS,
-    PROJECT_ID,
-    SERVICE_ACCOUNT,
-)
-from cryptofeed_werks.utils import get_container_name
-
-NAME_REGEX = re.compile(r"^(\w+)_gcp$")
 
 
 @task
 def create_pubsub(
-    c,
-    topic,
-    create_subscription=False,
-    message_retention_duration=0,
-    retain_acked_messages=False,
-):
-    project_id = config(PROJECT_ID)
+    ctx: Any,
+    topic: str,
+    create_subscription: bool = False,
+    message_retention_duration: int = 0,
+    retain_acked_messages: bool = False,
+) -> None:
+    """Create Pub/Sub."""
+    from google.api_core.exceptions import AlreadyExists
+    from google.cloud import pubsub_v1
+    from google.protobuf.duration_pb2 import Duration
+
+    project_id = config("PROJECT_ID")
     publisher = pubsub_v1.PublisherClient()
     subscriber = pubsub_v1.SubscriberClient()
     topic_path = publisher.topic_path(project_id, topic)
@@ -56,18 +48,32 @@ def create_pubsub(
                 pass
 
 
-@task
-def create_all_pubsub(c):
-    pass
-
-
-def docker_secrets():
-    build_args = [f'{secret}="{config(secret)}"' for secret in PRODUCTION_ENV_VARS]
+def get_docker_secrets() -> str:
+    """Get docker secrets."""
+    build_args = [
+        f'{secret}="{config(secret)}"' for secret in ("PROJECT_ID", "SENTRY_DSN")
+    ]
     return " ".join([f"--build-arg {build_arg}" for build_arg in build_args])
 
 
+def get_container_name(
+    hostname: str = "asia.gcr.io",
+    image: str = "cryptofeed-werks",
+    tag: Optional[str] = None,
+) -> str:
+    """Get container name."""
+    project_id = config("PROJECT_ID")
+    container_name = f"{hostname}/{project_id}/{image}"
+    if tag:
+        container_name += f":{tag}"
+    return container_name
+
+
 @task
-def build_container(ctx, hostname="asia.gcr.io", image=CRYPTOFEED_WERKS):
+def build_container(
+    ctx: Any, hostname: str = "asia.gcr.io", image: str = "cryptofeed-werks"
+) -> None:
+    """Build container."""
     name = get_container_name(hostname, image)
     requirements = ["cryptfeed", "python-decouple"]
     # Versions
@@ -81,27 +87,31 @@ def build_container(ctx, hostname="asia.gcr.io", image=CRYPTOFEED_WERKS):
         ]
     )
     # Build
-    build_args = f"--build-arg POETRY_EXPORT={reqs} " + docker_secrets()
+    build_args = f"--build-arg POETRY_EXPORT={reqs} " + get_docker_secrets()
     cmd = f"docker build {build_args} --file Dockerfile --tag {name} ."
     ctx.run(cmd)
 
 
 @task
-def push_container(c, hostname="asia.gcr.io", image=CRYPTOFEED_WERKS):
+def push_container(
+    ctx: Any, hostname: str = "asia.gcr.io", image: str = "cryptofeed-werks"
+) -> None:
+    """Push container."""
     name = get_container_name(hostname, image)
-    c.run(f"docker push {name}")
+    ctx.run(f"docker push {name}")
 
 
 @task
 def deploy_container(
-    c,
-    name=CRYPTOFEED_WERKS,
-    container_name=None,
-    machine_type="e2-micro",
-    zone="asia-northeast1-a",
-):
+    ctx: Any,
+    name: str = "cryptofeed-werks",
+    container_name: str | None = None,
+    machine_type: str = "e2-micro",
+    zone: str = "asia-northeast1-a",
+) -> None:
+    """Deploy container."""
     container_name = container_name or get_container_name(tag="latest")
-    service_account = config(SERVICE_ACCOUNT)
+    service_account = config("SERVICE_ACCOUNT")
     # A best practice is to set the full cloud-platform access scope on the instance,
     # then securely limit the service account's API access with IAM roles.
     # https://cloud.google.com/compute/docs/access/service-accounts#accesscopesiam
@@ -114,11 +124,14 @@ def deploy_container(
             --service-account {service_account} \
             --scopes {scopes}
     """
-    c.run(cmd)
+    ctx.run(cmd)
 
 
 @task
-def update_container(c, hostname="asia.gcr.io", name=CRYPTOFEED_WERKS):
-    build_container(c, hostname=hostname, image=name)
-    push_container(c, hostname=hostname, image=name)
-    c.run(f"gcloud compute instances reset {name}")
+def update_container(
+    ctx: Any, hostname: str = "asia.gcr.io", name: str = "cryptofeed-werks"
+) -> None:
+    """Update container."""
+    build_container(ctx, hostname=hostname, image=name)
+    push_container(ctx, hostname=hostname, image=name)
+    ctx.run(f"gcloud compute instances reset {name}")
