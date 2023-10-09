@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-
 from cryptofeed import FeedHandler
 from cryptofeed.defines import TRADES
+
 from cryptofeed_werks.exchanges import Bitflyer
 from cryptofeed_werks.trades import (
     NonSequentialIntegerTradeCallback,
     SignificantTradeCallback,
+    TradeClusterCallback,
 )
 
 
@@ -23,9 +24,8 @@ if __name__ == "__main__":
             callbacks={
                 TRADES: NonSequentialIntegerTradeCallback(
                     SignificantTradeCallback(
-                        trades,
-                        significant_trade_filter=10_000,  # Volume is low
-                        window_seconds=60,
+                        TradeClusterCallback(trades),
+                        significant_trade_filter=100_000,
                     )
                 )
             },

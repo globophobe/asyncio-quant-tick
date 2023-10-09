@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-
 from cryptofeed import FeedHandler
 from cryptofeed.defines import TRADES
+
 from cryptofeed_werks.exchanges import Bybit
-from cryptofeed_werks.trades import SignificantTradeCallback, TradeCallback
+from cryptofeed_werks.trades import (
+    SignificantTradeCallback,
+    TradeCallback,
+    TradeClusterCallback,
+)
 
 
 async def trades(trade: dict, timestamp: float) -> None:
@@ -20,10 +24,8 @@ if __name__ == "__main__":
             callbacks={
                 TRADES: TradeCallback(
                     SignificantTradeCallback(
-                        trades,
-                        significant_trade_filter=1_000,
-                        window_seconds=60,
-                    )
+                        TradeClusterCallback(trades), significant_trade_filter=1_000
+                    ),
                 )
             },
         )

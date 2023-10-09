@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
+from typing import Callable
+
 import sentry_sdk
 from cryptofeed import FeedHandler
 from cryptofeed.defines import TRADES
 from decouple import config
 
-from cryptofeed_werks.constants import SENTRY_DSN
 from cryptofeed_werks.exchanges import (
     Binance,
     Bitfinex,
@@ -15,11 +16,11 @@ from cryptofeed_werks.exchanges import (
     Upbit,
 )
 from cryptofeed_werks.trades import (
-    CandleCallback,
     NonSequentialIntegerTradeCallback,
     SequentialIntegerTradeCallback,
     SignificantTradeCallback,
     TradeCallback,
+    TradeClusterCallback,
 )
 
 sequential_integer_exchanges = {Binance: ["BTCUSDT"], Coinbase: ["BTC-USD"]}
@@ -34,30 +35,24 @@ other_exchanges = {
 }
 
 
-async def candles(candle: dict, timestamp: float) -> None:
-    """Candles."""
-    print(candle)
+async def trades(trade: dict, timestamp: float) -> None:
+    """Trades."""
+    print(trade)
 
 
-def get_callback(
-    exchange: any, min_volume: int = 1_000, window_seconds: int = 60, top_n: int = 10
-):
+def get_callback(exchange: any, significant_trade_filter: int = 1_000) -> Callable:
+    """Get callback."""
     if exchange == Bitflyer:
-        min_volume *= 100
+        significant_trade_filter *= 100
     elif exchange == Upbit:
-        min_volume *= 1000
-    candle_callback = CandleCallback(
-        candles, window_seconds=window_seconds, top_n=top_n
-    )
+        significant_trade_filter *= 1000
     return SignificantTradeCallback(
-        candle_callback,
-        significant_trade_filter=min_volume,
-        window_seconds=window_seconds,
+        TradeClusterCallback(trades), significant_trade_filter=significant_trade_filter
     )
 
 
 if __name__ == "__main__":
-    sentry_sdk.init(config(SENTRY_DSN), traces_sample_rate=1.0)
+    sentry_sdk.init(config("SENTRY_DSN"), traces_sample_rate=1.0)
 
     fh = FeedHandler()
 
