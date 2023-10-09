@@ -1,22 +1,3 @@
-from decimal import Decimal
-
-
-def decimal_to_str(data: dict) -> str:
-    """Decimal to str."""
-    for key, value in data.items():
-        if isinstance(value, dict):
-            data[key] = decimal_to_str(value)
-        elif isinstance(value, list):
-            for index, v in enumerate(value):
-                if isinstance(v, dict):
-                    data[key][index] = decimal_to_str(v)
-                elif isinstance(v, Decimal):
-                    data[key][index] = str(v)
-        elif isinstance(value, Decimal):
-            data[key] = str(value)
-    return data
-
-
 def normalize_symbol(feed: str, symbol: str) -> str:
     """Normalize symbol."""
     for char in ("-", "/", "_"):
