@@ -1,4 +1,5 @@
 from .candles import CandleCallback
+from .trade_cluster import TradeClusterCallback
 from .significant_trades import SignificantTradeCallback
 from .trades import (
     NonSequentialIntegerTradeCallback,
@@ -16,6 +17,7 @@ __all__ = [
     "GCPPubSubTradeCallback",
     "CandleCallback",
     "TradeCallback",
+    "TradeClusterCallback",
     "SignificantTradeCallback",
     "SequentialIntegerTradeCallback",
     "NonSequentialIntegerTradeCallback",
