@@ -35,6 +35,52 @@ bigquery = ["google-cloud-bigquery", "google-cloud-bigquery-storage"]
 httpx = ["httpx"]
 pubsub = ["google-cloud-pubsub"]
 
+[tool.ruff]
+ignore = [
+    "ANN002", # Missing type annotation for *{name}
+    "ANN003", # Missing type annotation for **{name}
+    "ANN101", # Missing type annotation for {name} in method
+    "ANN102", # Missing type annotation for {name} in classmethod
+    "ANN401", # Dynamically typed expressions (typing.Any) are disallowed in {name}
+    "B007", # Loop control variable not used within loop body
+    "B904", # Within an except clause, raise exceptions with...
+    "D100", # Missing docstring in public module
+    "D104", # Missing docstring in public package
+    "D106", # Missing docstring in public nested class, i.e. Meta
+    "D203", # 1 blank line required before class docstring
+    "D205", # 1 blank line required between summary line and description
+    "D212", # Multi-line docstring summary should start at the first line
+    "D213", # Multi-line docstring summary should start at the second line
+    "D400", # First line should end with a period
+    "D401", # First line should be in imperative mood
+    "D403", # First word of the first line should be properly capitalized
+    "D404", # First word of the docstring should not be This
+    "D406", # Section name should end with a newline
+    "D407", # Missing dashed underline after section
+    "D411", # Missing blank line before section
+    "D413", # Missing blank line after last section
+    "D415", # First line should end with a period, question mark, or exclamation point
+    "D417", # Missing argument description in the docstring: {name}
+    "N803", # Argument name should be lowercase
+    "N806", # Variable in function should be lowercase
+    "PTH123", # open() should be replaced by Path.open()
+]
+line-length = 119
+select = [
+    "ANN", # flake8-annotations
+    "B", # flake8-bugbear
+    "D", # pydocstyle
+    "E", # pycodestyle
+    "F", # Pyflakes
+    "I", # isort
+    "INT", # flake8-gettext
+    "N", # pep8-naming
+    "PTH", # flake8-use-pathlib
+    "UP", # pyupgrade
+    "W", # pycodestyle
+]
+unfixable = ["F401", "F841"]
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
