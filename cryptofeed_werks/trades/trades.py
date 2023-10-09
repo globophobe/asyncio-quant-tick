@@ -1,19 +1,19 @@
 from typing import Optional, Tuple
 
-from cryptofeed.backends.aggregate import AggregateCallback
 
-
-class TradeCallback(AggregateCallback):
+class TradeCallback:
     """
     Aggregate sequences of trades that have equal symbol, timestamp, nanoseconds, and
     tick rule.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(self, handler) -> None:
+        """Initialize."""
+        self.handler = handler
         self.trades = {}
 
     async def __call__(self, trade: dict, timestamp: float) -> Tuple[dict, float]:
+        """Call."""
         t = self.main(trade)
         if t is not None:
             await self.handler(t, timestamp)
@@ -24,6 +24,7 @@ class TradeCallback(AggregateCallback):
         return self.aggregate(t)
 
     def prepare_trade(self, trade: dict) -> dict:
+        """Prepare trade."""
         if "ticks" not in trade:
             trade["ticks"] = 1  # b/c Binance
         if "isSequential" not in trade:
@@ -71,10 +72,12 @@ class SequentialIntegerTradeCallback(TradeCallback):
     """Coinbase has sequential IDs"""
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize."""
         super().__init__(*args, **kwargs)
         self.uids = {}
 
     def main(self, trade: dict) -> dict:
+        """Main."""
         t = self.prepare_trade(trade)
         symbol = t["symbol"]
         uid = self.uids.get(symbol, None)
@@ -90,10 +93,12 @@ class NonSequentialIntegerTradeCallback(TradeCallback):
     """Bitfinex has non-sequential IDs"""
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize."""
         super().__init__(*args, **kwargs)
         self.uids = {}
 
     def main(self, trade: dict) -> dict:
+        """Main."""
         t = self.prepare_trade(trade)
         symbol = t["symbol"]
         uid = self.uids.get(symbol, None)

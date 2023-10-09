@@ -11,9 +11,12 @@ from .utils import normalize_symbol
 
 
 class GCPPubSubTradeCallback(GCPPubSubCallback):
+    """GCP Pub/Sub trade callback."""
+
     default_key = TRADES
 
     def __init__(self, *args, **kwargs) -> None:
+        """Initialize."""
         super().__init__(*args, **kwargs)
         self.topics = {}
 
@@ -23,6 +26,7 @@ class GCPPubSubTradeCallback(GCPPubSubCallback):
         pass
 
     async def __call__(self, trade: dict, timestamp: float) -> None:
+        """Call."""
         topic = self.get_topic_path(trade)
         message = self.get_message(trade)
         await self.write(topic, message)
