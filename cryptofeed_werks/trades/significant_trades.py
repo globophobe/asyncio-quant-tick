@@ -1,27 +1,28 @@
 from decimal import Decimal
 from typing import List, Optional, Tuple
 
-from cryptofeed.backends.aggregate import AggregateCallback
-
 from .constants import NOTIONAL, TICKS, VOLUME
 from .window import WindowMixin
 
 
-class SignificantTradeCallback(WindowMixin, AggregateCallback):
+class SignificantTradeCallback(WindowMixin):
+    """Significant trade callback."""
+
     def __init__(
         self,
-        *args,
+        handler,
         significant_trade_filter: int = 1000,
         window_seconds: Optional[int] = None,
-        **kwargs
     ) -> None:
-        super().__init__(*args, **kwargs)
+        """Initialize."""
+        self.handler = handler
         self.significant_trade_filter = Decimal(significant_trade_filter)
         self.trades = {}
         self.window_seconds = window_seconds
         self.window = {}
 
     async def __call__(self, trade: dict, timestamp: float) -> Tuple[dict, float]:
+        """Call."""
         result = self.main(trade)
         if isinstance(result, list):
             for t in result:
@@ -29,7 +30,8 @@ class SignificantTradeCallback(WindowMixin, AggregateCallback):
         elif isinstance(result, dict):
             await self.handler(result, timestamp)
 
-    def main(self, trade: dict) -> dict:
+    def main(self, trade: dict) -> Optional[dict]:
+        """Main."""
         symbol = trade["symbol"]
         timestamp = trade["timestamp"]
         self.trades.setdefault(symbol, [])

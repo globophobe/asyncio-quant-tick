@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-
 from cryptofeed import FeedHandler
 from cryptofeed.defines import TRADES
+
 from cryptofeed_werks.exchanges import Coinbase
 from cryptofeed_werks.trades import (
     SequentialIntegerTradeCallback,
     SignificantTradeCallback,
+    TradeClusterCallback,
 )
 
 
@@ -23,7 +24,7 @@ if __name__ == "__main__":
             callbacks={
                 TRADES: SequentialIntegerTradeCallback(
                     SignificantTradeCallback(
-                        trades, significant_trade_filter=1_000, window_seconds=60
+                        TradeClusterCallback(trades), significant_trade_filter=1_000
                     )
                 )
             },

@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-
 from cryptofeed import FeedHandler
 from cryptofeed.defines import TRADES
+
 from cryptofeed_werks.exchanges import Binance
-from cryptofeed_werks.trades import SignificantTradeCallback, TradeCallback
+from cryptofeed_werks.trades import (
+    SequentialIntegerTradeCallback,
+    SignificantTradeCallback,
+    TradeClusterCallback,
+)
 
 
 async def trades(trade: dict, timestamp: float) -> None:
@@ -18,11 +22,9 @@ if __name__ == "__main__":
             symbols=["BTCUSDT"],
             channels=[TRADES],
             callbacks={
-                TRADES: TradeCallback(
+                TRADES: SequentialIntegerTradeCallback(
                     SignificantTradeCallback(
-                        trades,
-                        significant_trade_filter=100_000,  # Volume is high
-                        window_seconds=60,
+                        TradeClusterCallback(trades), significant_trade_filter=1_000
                     )
                 )
             },

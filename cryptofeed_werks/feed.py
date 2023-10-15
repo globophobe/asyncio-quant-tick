@@ -5,18 +5,20 @@ from cryptofeed.feed import Feed as BaseFeed
 
 
 class Feed(BaseFeed):
+    """Feed."""
+
     def std_symbol_to_exchange_symbol(self, symbol: str) -> str:
         """Standard symbol to exchange symbol.
 
         There are certainly valid reasons to standardize symbols,
-        but there are also reasons to not care
+        but there are also reasons to not care.
         """
         return symbol
 
     def exchange_symbol_to_std_symbol(self, symbol: str) -> str:
         """Exchange symbol to standard symbol.
 
-        Ditto
+        Ditto.
         """
         return symbol
 

@@ -6,6 +6,8 @@ from dateutil.relativedelta import relativedelta
 
 
 class WindowMixin:
+    """Window mixin."""
+
     default_key = TRADES
 
     def get_start(self, timestamp: datetime) -> datetime:
@@ -31,6 +33,7 @@ class WindowMixin:
             window["stop"] = self.get_stop(start)
 
     def main(self, trade: dict) -> None:
+        """Main."""
         raise NotImplementedError
 
     def get_tick(self, symbol: str) -> Optional[dict]:
