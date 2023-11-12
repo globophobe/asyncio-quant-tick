@@ -58,7 +58,7 @@ def get_docker_secrets() -> str:
 
 def get_container_name(
     hostname: str = "asia.gcr.io",
-    image: str = "cryptofeed-werks",
+    image: str = "cryptofeed-experiments",
     tag: Optional[str] = None,
 ) -> str:
     """Get container name."""
@@ -71,7 +71,7 @@ def get_container_name(
 
 @task
 def build_container(
-    ctx: Any, hostname: str = "asia.gcr.io", image: str = "cryptofeed-werks"
+    ctx: Any, hostname: str = "asia.gcr.io", image: str = "cryptofeed-experiments"
 ) -> None:
     """Build container."""
     name = get_container_name(hostname, image)
@@ -94,7 +94,7 @@ def build_container(
 
 @task
 def push_container(
-    ctx: Any, hostname: str = "asia.gcr.io", image: str = "cryptofeed-werks"
+    ctx: Any, hostname: str = "asia.gcr.io", image: str = "cryptofeed-experiments"
 ) -> None:
     """Push container."""
     name = get_container_name(hostname, image)
@@ -104,7 +104,7 @@ def push_container(
 @task
 def deploy_container(
     ctx: Any,
-    name: str = "cryptofeed-werks",
+    name: str = "cryptofeed-experiments",
     container_name: str | None = None,
     machine_type: str = "e2-micro",
     zone: str = "asia-northeast1-a",
@@ -129,7 +129,7 @@ def deploy_container(
 
 @task
 def update_container(
-    ctx: Any, hostname: str = "asia.gcr.io", name: str = "cryptofeed-werks"
+    ctx: Any, hostname: str = "asia.gcr.io", name: str = "cryptofeed-experiments"
 ) -> None:
     """Update container."""
     build_container(ctx, hostname=hostname, image=name)

@@ -2,8 +2,8 @@
 from cryptofeed import FeedHandler
 from cryptofeed.defines import TRADES
 
-from cryptofeed_werks.exchanges import Bitflyer
-from cryptofeed_werks.trades import (
+from cryptofeed_experiments.exchanges import Bitflyer
+from cryptofeed_experiments.trades import (
     NonSequentialIntegerTradeCallback,
     SignificantTradeCallback,
     TradeClusterCallback,

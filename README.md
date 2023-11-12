@@ -64,7 +64,7 @@ Information related to the first trade is aggregated with the second.
 
 For 1m, 5m, 15m candles, there is an optional parameter `window_seconds`.  
 
-For settings, see the [examples](https://github.com/globophobe/cryptofeed-werks/blob/main/examples/)
+For settings, see the [examples](https://github.com/globophobe/cryptofeed-experiments/blob/main/examples/)
 
 Supported exchanges
 -------------------
@@ -86,7 +86,7 @@ Supported exchanges
 Contributing
 ------------
 
-Install dependencies with `poetry install`. The docker example is built with [invoke tasks](https://github.com/globophobe/cryptofeed-werks/blob/master/tasks.py). For example, `invoke build`
+Install dependencies with `poetry install`. The docker example is built with [invoke tasks](https://github.com/globophobe/cryptofeed-experiments/blob/master/tasks.py). For example, `invoke build`
 
 Future plans
 ------------

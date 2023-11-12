@@ -6,7 +6,7 @@ from cryptofeed import FeedHandler
 from cryptofeed.defines import TRADES
 from decouple import config
 
-from cryptofeed_werks.exchanges import (
+from cryptofeed_experiments.exchanges import (
     Binance,
     Bitfinex,
     Bitflyer,
@@ -15,7 +15,7 @@ from cryptofeed_werks.exchanges import (
     Coinbase,
     Upbit,
 )
-from cryptofeed_werks.trades import (
+from cryptofeed_experiments.trades import (
     NonSequentialIntegerTradeCallback,
     SequentialIntegerTradeCallback,
     SignificantTradeCallback,
