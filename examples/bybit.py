@@ -2,8 +2,8 @@
 from cryptofeed import FeedHandler
 from cryptofeed.defines import TRADES
 
-from cryptofeed_werks.exchanges import Bybit
-from cryptofeed_werks.trades import (
+from cryptofeed_experiments.exchanges import Bybit
+from cryptofeed_experiments.trades import (
     SignificantTradeCallback,
     TradeCallback,
     TradeClusterCallback,

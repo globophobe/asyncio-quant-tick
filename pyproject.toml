@@ -1,17 +1,17 @@
 [tool.poetry]
-name = "cryptofeed-werks"
-version = "0.1.6"
+name = "cryptofeed-experiments"
+version = "0.1.7"
 description = "WebSocket subclasses, and experiments, for data from cryptocurrency exchanges"
 authors = ["Alex <globophobe@gmail.com>"]
 readme = "README.md"
 license = "MIT"
-homepage = "https://github.com/globophobe/cryptofeed-werks"
-repository = "https://github.com/globophobe/cryptofeed-werks"
+homepage = "https://github.com/globophobe/cryptofeed-experiments"
+repository = "https://github.com/globophobe/cryptofeed-experiments"
 keywords = ["cryptocurrency", "trading"]
 classifiers = [
     "Operating System :: OS Independent",
 ]
-packages = [{ include = "cryptofeed_werks" }]
+packages = [{ include = "cryptofeed_experiments" }]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
