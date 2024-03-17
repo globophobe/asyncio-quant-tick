@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from typing import Optional, Tuple
 
 
@@ -7,7 +8,7 @@ class TradeCallback:
     tick rule.
     """
 
-    def __init__(self, handler) -> None:
+    def __init__(self, handler: Callable) -> None:
         """Initialize."""
         self.handler = handler
         self.trades = {}

@@ -6,21 +6,21 @@ from cryptofeed import FeedHandler
 from cryptofeed.defines import TRADES
 from decouple import config
 
-from cryptofeed_experiments.exchanges import (
+from asyncio_quant_tick.exchanges import (
     Binance,
     Bitfinex,
     Bitflyer,
     Bitmex,
-    Bybit,
+    # Bybit,
     Coinbase,
     Upbit,
 )
-from cryptofeed_experiments.trades import (
+from asyncio_quant_tick.trades import (
+    CandleCallback,
     NonSequentialIntegerTradeCallback,
     SequentialIntegerTradeCallback,
     SignificantTradeCallback,
     TradeCallback,
-    TradeClusterCallback,
 )
 
 sequential_integer_exchanges = {Binance: ["BTCUSDT"], Coinbase: ["BTC-USD"]}
@@ -29,15 +29,15 @@ non_sequential_integer_exchanges = {Bitfinex: ["BTCUSD"]}
 
 other_exchanges = {
     Bitmex: ["XBTUSD"],
-    Bybit: ["BTCUSD"],
+    # Bybit: ["BTCUSD"],
     Bitflyer: ["BTC/JPY"],
     Upbit: ["BTC-KRW"],
 }
 
 
-async def trades(trade: dict, timestamp: float) -> None:
-    """Trades."""
-    print(trade)
+async def candles(candle: dict, timestamp: float) -> None:
+    """Candles."""
+    print(candle)
 
 
 def get_callback(exchange: any, significant_trade_filter: int = 1_000) -> Callable:
@@ -47,7 +47,9 @@ def get_callback(exchange: any, significant_trade_filter: int = 1_000) -> Callab
     elif exchange == Upbit:
         significant_trade_filter *= 1000
     return SignificantTradeCallback(
-        TradeClusterCallback(trades), significant_trade_filter=significant_trade_filter
+        CandleCallback(candles, window_seconds=60),
+        window_seconds=60,
+        significant_trade_filter=significant_trade_filter,
     )
 
 

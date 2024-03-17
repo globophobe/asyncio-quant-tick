@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from decimal import Decimal
 from typing import List, Optional, Tuple
 
@@ -10,7 +11,7 @@ class SignificantTradeCallback(WindowMixin):
 
     def __init__(
         self,
-        handler,
+        handler: Callable,
         significant_trade_filter: int = 1000,
         window_seconds: Optional[int] = None,
     ) -> None:

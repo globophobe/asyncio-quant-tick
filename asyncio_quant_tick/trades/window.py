@@ -1,14 +1,11 @@
 from datetime import datetime
 from typing import List, Optional
 
-from cryptofeed.defines import TRADES
 from dateutil.relativedelta import relativedelta
 
 
 class WindowMixin:
     """Window mixin."""
-
-    default_key = TRADES
 
     def get_start(self, timestamp: datetime) -> datetime:
         """Get start."""
