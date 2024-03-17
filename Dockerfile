@@ -7,7 +7,7 @@ ARG SENTRY_DSN
 ENV PROJECT_ID $PROJECT_ID
 ENV SENTRY_DSN $SENTRY_DSN
 
-ADD cryptofeed_experiments /cryptofeed_experiments/
+ADD asyncio_quant_tick /asyncio_quant_tick/
 ADD main.py /
 
 RUN apt-get update \

@@ -1,17 +1,15 @@
 [tool.poetry]
-name = "cryptofeed-experiments"
-version = "0.1.7"
-description = "WebSocket subclasses, and experiments, for data from cryptocurrency exchanges"
+name = "asyncio-quant-tick"
+version = "0.1.8"
+description = "Asyncio Quant Tick aggregate candlesticks from high frequency tick data from WebSockets"
 authors = ["Alex <globophobe@gmail.com>"]
 readme = "README.md"
 license = "MIT"
-homepage = "https://github.com/globophobe/cryptofeed-experiments"
-repository = "https://github.com/globophobe/cryptofeed-experiments"
-keywords = ["cryptocurrency", "trading"]
-classifiers = [
-    "Operating System :: OS Independent",
-]
-packages = [{ include = "cryptofeed_experiments" }]
+homepage = "https://github.com/globophobe/asyncio-quant-tick"
+repository = "https://github.com/globophobe/asyncio-quant-tick"
+keywords = ["quant", "trading", "trading-strategies", "coinbase", "bitfinex", "bitmex", "bybit"]
+classifiers = ["Development Status :: 4 - Beta", "Operating System :: OS Independent"]
+packages = [{ include = "asyncio_quant_tick" }]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
@@ -80,6 +78,9 @@ select = [
     "W", # pycodestyle
 ]
 unfixable = ["F401", "F841"]
+
+[tool.ruff.isort]
+known-first-party = ["asyncio_quant_tick"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

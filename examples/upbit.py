@@ -2,17 +2,17 @@
 from cryptofeed import FeedHandler
 from cryptofeed.defines import TRADES
 
-from cryptofeed_experiments.exchanges import Upbit
-from cryptofeed_experiments.trades import (
+from asyncio_quant_tick.exchanges import Upbit
+from asyncio_quant_tick.trades import (
+    CandleCallback,
     SignificantTradeCallback,
     TradeCallback,
-    TradeClusterCallback,
 )
 
 
-async def trades(trade: dict, timestamp: float) -> None:
-    """Trades."""
-    print(trade)
+async def candles(candle: dict, timestamp: float) -> None:
+    """Candles."""
+    print(candle)
 
 
 if __name__ == "__main__":
@@ -24,7 +24,8 @@ if __name__ == "__main__":
             callbacks={
                 TRADES: TradeCallback(
                     SignificantTradeCallback(
-                        TradeClusterCallback(trades),
+                        CandleCallback(candles, window_seconds=60),
+                        window_seconds=60,
                         significant_trade_filter=10_000_000,
                     ),
                 )

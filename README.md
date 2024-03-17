@@ -1,6 +1,6 @@
 # What?
 
-This is the basis of a pipeline for live data from cryptocurrency exchanges. It normalizes [cryptofeed](https://github.com/bmoscon/cryptofeed) WebSocket messages, aggregates, and optionally publishes them to GCP Pub/Sub.
+Asyncio Quant Tick downloads and aggregate candlesticks from high frequency tick data from WebSockets.
 
 # How?
 
@@ -64,7 +64,7 @@ Information related to the first trade is aggregated with the second.
 
 For 1m, 5m, 15m candles, there is an optional parameter `window_seconds`.  
 
-For settings, see the [examples](https://github.com/globophobe/cryptofeed-experiments/blob/main/examples/)
+For settings, see the [examples](https://github.com/globophobe/asyncio-quant-tick/blob/main/examples/)
 
 Supported exchanges
 -------------------
@@ -86,8 +86,4 @@ Supported exchanges
 Contributing
 ------------
 
-Install dependencies with `poetry install`. The docker example is built with [invoke tasks](https://github.com/globophobe/cryptofeed-experiments/blob/master/tasks.py). For example, `invoke build`
-
-Future plans
-------------
-Order book aggregation, in the manner of [crypto-whale-watching-app](https://github.com/pmaji/crypto-whale-watching-app)
+Install dependencies with `poetry install`. The docker example is built with [invoke tasks](https://github.com/globophobe/asyncio-quant-tick/blob/master/tasks.py). For example, `invoke build`

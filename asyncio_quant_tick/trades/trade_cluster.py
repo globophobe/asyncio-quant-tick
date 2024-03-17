@@ -1,17 +1,15 @@
-from decimal import Decimal
-from statistics import median
+from collections.abc import Callable
 from typing import List, Optional, Tuple
 
-from .constants import VOLUME
 from .window import WindowMixin
 
 
 class TradeClusterCallback(WindowMixin):
-    """Trade cluter callback."""
+    """Trade cluster callback."""
 
     def __init__(
         self,
-        handler,
+        handler: Callable,
         window_seconds: Optional[int] = None,
     ) -> None:
         """Init."""
@@ -30,7 +28,6 @@ class TradeClusterCallback(WindowMixin):
     def main(self, trade: dict) -> Optional[dict]:
         """Main."""
         symbol = trade["symbol"]
-        trades = self.trades.setdefault(symbol, [])
         timestamp = trade["timestamp"]
         window = self.get_window(symbol, timestamp)
         if window is not None:
@@ -49,15 +46,16 @@ class TradeClusterCallback(WindowMixin):
                 self.trades[symbol].append(trade)
                 # Set window
                 self.set_window(symbol, timestamp)
-                # Finally, return ticks
-                return self.get_tick(symbol, trade)
+                # Finally, return tick
+                return self.get_tick(symbol)
+            else:
+                return self.get_trade_cluster_or_tick(symbol, trade)
         else:
             return self.get_trade_cluster_or_tick(symbol, trade)
 
     def get_trade_cluster_or_tick(self, symbol: str, trade: dict) -> Optional[dict]:
         """Get trade cluster or tick."""
         trades = self.trades.setdefault(symbol, [])
-        is_sequential = True
         is_same_direction = True
         tick_rule = trade.get("tickRule")
         if self.tick_rule:
