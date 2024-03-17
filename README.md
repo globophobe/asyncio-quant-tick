@@ -1,6 +1,6 @@
 # What?
 
-Asyncio Quant Tick downloads and aggregate candlesticks from high frequency tick data from WebSockets.
+Asyncio Quant Tick aggregates candlesticks from high frequency tick data from WebSockets.
 
 # How?
 
