@@ -9,7 +9,7 @@ homepage = "https://github.com/globophobe/asyncio-quant-tick"
 repository = "https://github.com/globophobe/asyncio-quant-tick"
 keywords = ["quant", "trading", "trading-strategies", "coinbase", "bitfinex", "bitmex", "bybit"]
 classifiers = ["Development Status :: 4 - Beta", "Operating System :: OS Independent"]
-packages = [{ include = "asyncio_quant_tick" }]
+packages = [{ include = "quant_tick" }]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
@@ -80,7 +80,7 @@ select = [
 unfixable = ["F401", "F841"]
 
 [tool.ruff.isort]
-known-first-party = ["asyncio_quant_tick"]
+known-first-party = ["quant_tick"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

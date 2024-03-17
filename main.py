@@ -6,7 +6,7 @@ from cryptofeed import FeedHandler
 from cryptofeed.defines import TRADES
 from decouple import config
 
-from asyncio_quant_tick.exchanges import (
+from quant_tick.exchanges import (
     Binance,
     Bitfinex,
     Bitflyer,
@@ -15,7 +15,7 @@ from asyncio_quant_tick.exchanges import (
     Coinbase,
     Upbit,
 )
-from asyncio_quant_tick.trades import (
+from quant_tick.trades import (
     CandleCallback,
     NonSequentialIntegerTradeCallback,
     SequentialIntegerTradeCallback,
