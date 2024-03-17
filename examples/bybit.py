@@ -2,8 +2,8 @@
 from cryptofeed import FeedHandler
 from cryptofeed.defines import TRADES
 
-from asyncio_quant_tick.exchanges import Bybit
-from asyncio_quant_tick.trades import (
+from quant_tick.exchanges import Bybit
+from quant_tick.trades import (
     CandleCallback,
     SignificantTradeCallback,
     TradeCallback,
